@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="font-heading mb-4 text-brand">My Orders</h1>
+    
+    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+        {% if orders %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr class="small text-uppercase text-muted border-bottom">
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Total Price</th>
+                            <th>Payment</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr class="border-bottom">
+                                <td class="fw-bold">#{{ order.id }}</td>
+                                <td>{{ order.created_at|date:"d M Y" }}</td>
+                                <td>
+                                    {% if order.status == 'Processing' %}
+                                        <span class="badge bg-warning text-dark rounded-0">{{ order.status }}</span>
+                                    {% elif order.status == 'Packed' %}
+                                        <span class="badge bg-info text-dark rounded-0">{{ order.status }}</span>
+                                    {% elif order.status == 'Shipped' %}
+                                        <span class="badge bg-primary rounded-0">{{ order.status }}</span>
+                                    {% else %}
+                                        <span class="badge bg-success rounded-0">{{ order.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-brand fw-semibold">₹{{ order.total_price }}</td>
+                                <td>
+                                    {{ order.get_payment_method_display }}
+                                    {% if order.payment_status %}
+                                        <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-0 small ms-1">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 rounded-0 small ms-1">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-brand-outline py-1 px-3 fs-7 rounded-0">Track Order</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="fa-solid fa-receipt fs-1 opacity-25 mb-3"></i>
+                <h3 class="font-heading">No Orders Placed Yet</h3>
+                <p>Explore our items and place your first order today!</p>
+                <a href="{% url 'products:product_list' %}" class="btn btn-brand mt-2">Start Shopping</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

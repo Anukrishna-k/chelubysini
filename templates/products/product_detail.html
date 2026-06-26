@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-muted text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}" class="text-muted text-decoration-none">Shop</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}?category={{ product.category.name }}" class="text-muted text-decoration-none">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active text-brand" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <!-- Product Image -->
+        <div class="col-md-6">
+            <div class="bg-white p-2 border shadow-sm" style="cursor: zoom-in;" data-bs-toggle="modal" data-bs-target="#imageFullscreenModal">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid w-100 object-fit-cover" style="max-height: 600px;">
+                {% else %}
+
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 450px;">
+                        <i class="fa fa-image fs-1 text-muted"></i>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Actions -->
+        <div class="col-md-6">
+            <div class="ps-lg-4">
+                <span class="text-uppercase text-gold small tracking-widest fw-semibold">{{ product.category.name }}</span>
+                <h1 class="font-heading detail-product-title mt-2 text-brand">{{ product.name }}</h1>
+                
+                <!-- Ratings display -->
+                <div class="d-flex align-items-center mb-3">
+                    <div class="star-rating me-2">
+                        {% if product.average_rating > 0 %}
+                            {% with rating=product.average_rating %}
+                                <!-- Quick rating stars approximation -->
+                                <i class="fa-solid fa-star"></i>
+                                <span class="text-dark fw-bold ms-1">{{ rating }}</span>
+                            {% endwith %}
+                        {% else %}
+                            <i class="fa-regular fa-star text-muted"></i>
+                            <span class="text-muted small">No reviews yet</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-muted small border-start ps-2">({{ reviews.count }} review{{ reviews.count|pluralize }})</span>
+                </div>
+
+                <div class="detail-price">₹{{ product.price }}</div>
+
+                <p class="text-muted mb-4">{{ product.description }}</p>
+
+                <hr class="my-4">
+
+                <!-- Stock availability -->
+                <div class="mb-4">
+                    {% if product.stock > 0 %}
+                        <span class="badge bg-success rounded-0 text-uppercase tracking-wider px-3 py-2">In Stock ({{ product.stock }} available)</span>
+                    {% else %}
+                        <span class="badge bg-danger rounded-0 text-uppercase tracking-wider px-3 py-2">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                {% if product.stock > 0 %}
+                <form action="{% url 'cart:cart_add' product.id %}" method="post" class="mb-4">
+                    {% csrf_token %}
+                    
+                    <!-- Size Selector (Conditional boutique feature) -->
+                    <div class="mb-4">
+                        {% if "Saree" in product.category.name or "Settumundu" in product.category.name or "Jewellery" in product.category.name or "Accessories" in product.category.name %}
+                            <!-- For Sarees, Settumundus, and Jewellery, show Free Size -->
+                            <label class="form-label fw-bold text-uppercase small text-brand">Size</label>
+                            <div class="size-selector d-flex mt-1">
+                                <input type="radio" name="size" id="size-fs" value="Free Size" checked>
+                                <label for="size-fs" style="width: auto; padding: 0 1.5rem; text-align: center;">Free Size</label>
+                            </div>
+                        {% else %}
+                            <!-- For ready-made blouses, dresses, etc. show SML sizes -->
+                            <label class="form-label fw-bold text-uppercase small text-brand">Select Size</label>
+                            <div class="size-selector d-flex mt-1">
+                                <input type="radio" name="size" id="size-xs" value="XS">
+                                <label for="size-xs">XS</label>
+
+                                <input type="radio" name="size" id="size-s" value="S">
+                                <label for="size-s">S</label>
+
+                                <input type="radio" name="size" id="size-m" value="M" checked>
+                                <label for="size-m">M</label>
+
+                                <input type="radio" name="size" id="size-l" value="L">
+                                <label for="size-l">L</label>
+
+                                <input type="radio" name="size" id="size-xl" value="XL">
+                                <label for="size-xl">XL</label>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Quantity Adjust and Actions -->
+                    <div class="row g-3 align-items-center">
+                        <div class="col-4 col-md-3">
+                            <label for="quantity" class="visually-hidden">Quantity</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0 rounded-0" style="font-size: 0.8rem;">Qty</span>
+                                <input type="number" name="quantity" id="quantity" class="form-control rounded-0 text-center border-start-0" value="1" min="1" max="{{ product.stock }}" style="width: 50px;">
+                            </div>
+                        </div>
+                        <div class="col-8 col-md-9 d-flex gap-2">
+                            <button type="submit" class="btn btn-brand flex-grow-1 py-2">
+                                <i class="fa-solid fa-bag-shopping me-2"></i>Add to Bag
+                            </button>
+                            <a href="{% url 'wishlist:wishlist_add' product.id %}" class="btn btn-brand-outline py-2 px-3" title="Add to Wishlist">
+                                <i class="fa-regular fa-heart fs-6"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+                {% endif %}
+
+                <hr class="my-4">
+                
+                <!-- Additional Boutique benefits -->
+                <div class="row g-3 text-center text-md-start small">
+                    <div class="col-md-4">
+                        <i class="fa-solid fa-truck text-brand mb-2 mb-md-0 me-md-2"></i> Free Shipping PAN India
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fa-solid fa-rotate-left text-brand mb-2 mb-md-0 me-md-2"></i> 7 Days Easy Returns
+                    </div>
+                    <div class="col-md-4">
+                        <i class="fa-solid fa-shield text-brand mb-2 mb-md-0 me-md-2"></i> 100% Genuine Fabrics
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-5 pt-4 border-top">
+        <div class="col-lg-7 mb-5 mb-lg-0">
+            <h3 class="font-heading mb-4 text-brand">Customer Reviews ({{ reviews.count }})</h3>
+            
+            <div class="d-flex flex-column gap-4">
+                {% for review in reviews %}
+                    <div class="bg-white p-4 shadow-sm border">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <span class="fw-bold">{{ review.user.username }}</span>
+                                <div class="star-rating d-inline-block ms-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fa-solid fa-star"></i>
+                                        {% else %}
+                                            <i class="fa-regular fa-star text-muted"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <span class="text-muted small">{{ review.created_at|date:"d M Y" }}</span>
+                        </div>
+                        <p class="mb-0 text-muted">{{ review.comment }}</p>
+                    </div>
+                {% empty %}
+                    <div class="text-muted py-4 text-center bg-white border">
+                        <i class="fa-regular fa-message fs-1 opacity-25 mb-2"></i>
+                        <p class="mb-0">No reviews yet. Be the first to review this product!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Write a Review Form -->
+        <div class="col-lg-5 ps-lg-5">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <h4 class="font-heading fs-4 mb-3 text-brand">Write a Review</h4>
+                {% if user.is_authenticated %}
+                    <form action="{% url 'products:submit_review' product.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="rating" class="form-label small fw-semibold">Your Rating</label>
+                            <select name="rating" id="rating" class="form-select rounded-0" required>
+                                <option value="" disabled selected>Choose a rating...</option>
+                                <option value="5">5 Stars - Excellent</option>
+                                <option value="4">4 Stars - Very Good</option>
+                                <option value="3">3 Stars - Average</option>
+                                <option value="2">2 Stars - Poor</option>
+                                <option value="1">1 Star - Very Poor</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label small fw-semibold">Your Comment</label>
+                            <textarea name="comment" id="comment" rows="4" class="form-control rounded-0" placeholder="What did you like or dislike about the product?" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-brand w-100">Submit Review</button>
+                    </form>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">You must be logged in to write a review.</p>
+                        <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-brand-outline px-4 rounded-0">Login Now</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-5 pt-5 border-top">
+        <div class="section-header">
+            <h2>You May Also Like</h2>
+            <p>Similar silhouettes from the same collection</p>
+        </div>
+        <div class="row g-4">
+            {% for rel_prod in related_products %}
+                <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+                    <div class="product-card">
+
+                        <a href="{% url 'wishlist:wishlist_add' rel_prod.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
+                            <i class="fa-regular fa-heart"></i>
+                        </a>
+                        <div class="product-image-wrapper">
+                            {% if rel_prod.image %}
+                                <img src="{{ rel_prod.image.url }}" alt="{{ rel_prod.name }}">
+                            {% else %}
+                                <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
+                            {% endif %}
+                        </div>
+                        <div class="product-card-body">
+                            <div>
+                                <div class="product-card-category">{{ rel_prod.category.name }}</div>
+                                <h4 class="product-card-title"><a href="{% url 'products:product_detail' rel_prod.id %}">{{ rel_prod.name }}</a></h4>
+                                <div class="star-rating mb-2">
+                                    {% if rel_prod.average_rating > 0 %}
+                                        <i class="fa-solid fa-star"></i> <span class="text-dark small">{{ rel_prod.average_rating }}</span>
+                                    {% else %}
+                                        <i class="fa-regular fa-star text-muted"></i> <span class="text-muted small">No reviews</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="product-card-price">₹{{ rel_prod.price }}</span>
+                                <form action="{% url 'cart:cart_add' rel_prod.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-brand p-2 px-3 fs-6 rounded-0"><i class="fa-solid fa-bag-shopping"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Fullscreen Image Lightbox Modal -->
+<div class="modal fade" id="imageFullscreenModal" tabindex="-1" aria-labelledby="imageFullscreenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down m-0 max-vw-100 max-vh-100" style="max-width: 100%; width: 100%;">
+        <div class="modal-content rounded-0 border-0 bg-dark bg-opacity-95 text-white" style="min-height: 100vh;">
+            <div class="modal-header border-0 p-3 position-absolute top-0 end-0" style="z-index: 1060;">
+                <button type="button" class="btn-close btn-close-white fs-4 p-2 shadow-none" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(100%) brightness(200%);"></button>
+            </div>
+            <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="img-fluid object-fit-contain" alt="{{ product.name }}" style="max-height: 95vh; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

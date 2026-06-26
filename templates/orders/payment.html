@@ -1,0 +1,510 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Payment | Chelu by Sini{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling for Payment Gateway and Simulation */
+    .payment-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .payment-methods-card {
+        background-color: #ffffff;
+        border: none;
+        border-radius: 0;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+    
+    /* Simulated Credit Card styling */
+    .credit-card-preview {
+        background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-hover) 100%);
+        color: #ffffff;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(27, 58, 36, 0.25);
+        transition: transform 0.6s ease;
+    }
+    .credit-card-preview::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(197, 160, 89, 0.1) 0%, transparent 70%);
+        top: -100px;
+        right: -100px;
+        border-radius: 50%;
+    }
+    .card-chip {
+        width: 45px;
+        height: 35px;
+        background: linear-gradient(135deg, #f3d069 0%, #c5a059 100%);
+        border-radius: 6px;
+        margin-bottom: 2rem;
+    }
+    .card-number-display {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.45rem;
+        letter-spacing: 0.12em;
+        margin-bottom: 1.5rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+    .card-brand-logo {
+        font-family: var(--font-heading);
+        font-style: italic;
+        font-weight: 300;
+        font-size: 1.5rem;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Loading overlay for processing payment */
+    .processing-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.95);
+        z-index: 1050;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+    
+    .spinner-gold {
+        width: 3.5rem;
+        height: 3.5rem;
+        color: var(--brand-secondary);
+    }
+    
+    /* UPI QR Display */
+    .qr-container {
+        border: 2px dashed var(--brand-secondary);
+        background-color: var(--brand-light);
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+    .qr-logo-overlay {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        background-color: #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-heading);
+        font-weight: bold;
+        color: var(--brand-primary);
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="payment-container">
+        
+        <div class="text-center mb-5">
+            <h1 class="font-heading text-brand">Complete Your Order</h1>
+            <p class="text-muted">Secure transaction processing for Order #{{ order.id }}</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Order summary column -->
+            <div class="col-md-5 order-md-2">
+                <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                    <h4 class="font-heading fs-5 mb-3 pb-2 border-bottom text-brand">Summary</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Order ID</span>
+                        <span class="fw-bold">#{{ order.id }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Payment Method</span>
+                        <span class="badge bg-light text-brand px-2 py-1">{{ order.get_payment_method_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Email</span>
+                        <span class="text-truncate" style="max-width: 150px;">{{ order.email }}</span>
+                    </div>
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-between fs-4 fw-bold text-brand">
+                        <span>To Pay</span>
+                        <span>₹{{ order.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment gateway interaction column -->
+            <div class="col-md-7 order-md-1">
+                <div class="card payment-methods-card p-4">
+                    
+                    {% if order.payment_method == 'Razorpay' %}
+                        <!-- Razorpay Section -->
+                        {% if is_real_razorpay %}
+                            <div class="text-center py-4">
+                                <i class="fa-solid fa-shield-halved text-brand fs-1 mb-3"></i>
+                                <h4 class="font-heading text-brand">Secure Checkout</h4>
+                                <p class="small text-muted mb-4">Click below to open the secure Razorpay payment wizard.</p>
+                                <button id="rzp-button" class="btn btn-brand-gold w-100 py-3 text-uppercase fw-bold">Pay with Razorpay</button>
+                            </div>
+                        {% else %}
+                            <!-- Fallback simulated credit card checkout -->
+                            <div>
+                                <h4 class="font-heading text-brand mb-4">Secure Card Payment <span class="fs-7 text-muted fw-normal">(Simulated)</span></h4>
+                                
+                                <!-- Card Preview Graphic -->
+                                <div class="credit-card-preview p-4 mb-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <span class="card-brand-logo">CHELU</span>
+                                        <i class="fa-brands fa-cc-visa fs-2"></i>
+                                    </div>
+                                    <div class="card-chip"></div>
+                                    <div class="card-number-display" id="card-num-preview">•••• •••• •••• ••••</div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="small opacity-50 d-block" style="font-size: 0.65rem;">CARDHOLDER</span>
+                                            <span class="small fw-semibold text-uppercase" id="card-name-preview">YOUR NAME</span>
+                                        </div>
+                                        <div>
+                                            <span class="small opacity-50 d-block" style="font-size: 0.65rem;">EXPIRES</span>
+                                            <span class="small fw-semibold" id="card-exp-preview">MM/YY</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form id="simulated-card-form" class="mt-4">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Cardholder Name</label>
+                                        <input type="text" id="card-name" class="form-control rounded-0" placeholder="e.g. Sini Joy" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Card Number</label>
+                                        <input type="text" id="card-number" class="form-control rounded-0" placeholder="4111 2222 3333 4444" maxlength="19" required>
+                                    </div>
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-6">
+                                            <label class="form-label small fw-semibold">Expiry Date</label>
+                                            <input type="text" id="card-expiry" class="form-control rounded-0" placeholder="MM/YY" maxlength="5" required>
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small fw-semibold">CVV</label>
+                                            <input type="password" id="card-cvv" class="form-control rounded-0" placeholder="123" maxlength="3" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-brand-gold w-100 py-3 text-uppercase fw-bold">Pay Now (₹{{ order.total_price }})</button>
+                                </form>
+                            </div>
+                        {% endif %}
+
+                    {% elif order.payment_method == 'UPI' %}
+                        <!-- UPI Section -->
+                        <div>
+                            <h4 class="font-heading text-brand text-center mb-4">Pay Instantly with UPI <span class="fs-7 text-muted fw-normal">(Simulated)</span></h4>
+                            
+                            <!-- QR Code Scan Area -->
+                            <div class="text-center mb-4">
+                                <div class="qr-container mb-3">
+                                     <!-- A generated QR visual representation -->
+                                     <div class="w-100 h-100 d-flex flex-wrap justify-content-center align-content-center bg-white border border-light shadow-sm" style="padding: 5px;">
+                                         {% if boutique_settings.upi_qr_code %}
+                                             <img src="{{ boutique_settings.upi_qr_code.url }}" class="w-100 h-100 object-fit-contain" alt="UPI QR Code">
+                                         {% else %}
+                                             <!-- SVG grid simulation of QR -->
+                                             <svg width="150" height="150" viewBox="0 0 100 100">
+                                                 <!-- Corner Squares -->
+                                                 <rect x="0" y="0" width="25" height="25" fill="#1b3a24" />
+                                                 <rect x="3" y="3" width="19" height="19" fill="#ffffff" />
+                                                 <rect x="6" y="6" width="13" height="13" fill="#1b3a24" />
+                                                 
+                                                 <rect x="75" y="0" width="25" height="25" fill="#1b3a24" />
+                                                 <rect x="78" y="3" width="19" height="19" fill="#ffffff" />
+                                                 <rect x="81" y="6" width="13" height="13" fill="#1b3a24" />
+                                                 
+                                                 <rect x="0" y="75" width="25" height="25" fill="#1b3a24" />
+                                                 <rect x="3" y="78" width="19" height="19" fill="#ffffff" />
+                                                 <rect x="6" y="81" width="13" height="13" fill="#1b3a24" />
+                                                 
+                                                 <!-- Random QR bits -->
+                                                 <rect x="35" y="5" width="10" height="5" fill="#c5a059" />
+                                                 <rect x="50" y="15" width="5" height="20" fill="#1b3a24" />
+                                                 <rect x="65" y="10" width="8" height="8" fill="#c5a059" />
+                                                 <rect x="30" y="45" width="15" height="10" fill="#1b3a24" />
+                                                 <rect x="55" y="40" width="25" height="5" fill="#c5a059" />
+                                                 <rect x="40" y="60" width="10" height="20" fill="#1b3a24" />
+                                                 <rect x="60" y="70" width="25" height="15" fill="#1b3a24" />
+                                                 <rect x="30" y="80" width="5" height="15" fill="#c5a059" />
+                                             </svg>
+                                         {% endif %}
+                                     </div>
+                                     {% if not boutique_settings.upi_qr_code %}
+                                         <div class="qr-logo-overlay">
+                                             <span>CHELU</span>
+                                         </div>
+                                     {% endif %}
+                                 </div>
+                                <span class="small text-muted d-block mt-2">Scan QR code using any BHIM UPI client (GPay/PhonePe) to pay.</span>
+                            </div>
+
+                            <div class="text-center my-3 text-uppercase text-muted fw-bold" style="font-size: 0.8rem; letter-spacing: 0.15em;">OR PAY BY UPI ID</div>
+
+                            <form id="simulated-upi-form">
+                                <div class="mb-4">
+                                    <label class="form-label small fw-semibold">UPI ID / VPA</label>
+                                    <input type="text" id="upi-id" class="form-control rounded-0 text-center fs-5" placeholder="e.g. username@okaxis" required>
+                                </div>
+                                <button type="submit" class="btn btn-brand-gold w-100 py-3 text-uppercase fw-bold">Pay Now (₹{{ order.total_price }})</button>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Simulated OTP Modal -->
+<div class="modal fade" id="otpModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-0 border-0 shadow-lg">
+            <div class="modal-header border-0 bg-cream text-brand">
+                <h5 class="modal-title font-heading fs-5" id="otpModalLabel">Two-Step Verification</h5>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <p>We've sent a 6-digit OTP code to your registered mobile number for card security.</p>
+                <div class="d-flex justify-content-center gap-2 my-4">
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                    <input type="text" class="form-control text-center fs-3 fw-bold rounded-0 otp-input" style="width: 50px; height: 60px;" maxlength="1" required>
+                </div>
+                <div class="text-muted small">Resend OTP in <span id="otp-timer">45</span>s</div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" id="submit-otp-btn" class="btn btn-brand w-100 py-3 text-uppercase fw-bold">Verify & Complete Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Verification Processing Page Overlay -->
+<div class="processing-overlay" id="loading-overlay">
+    <div class="spinner-border spinner-gold mb-3" role="status"></div>
+    <h4 class="font-heading text-brand" id="loading-title">Initiating Payment</h4>
+    <p class="text-muted" id="loading-desc">Please do not refresh or navigate away from this screen...</p>
+</div>
+
+<!-- Form to submit results back to verification view -->
+<form id="verify-form" method="post" action="{% url 'orders:payment_verify' order.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="status" value="success">
+    <input type="hidden" name="razorpay_payment_id" id="verify-pay-id">
+    <input type="hidden" name="razorpay_order_id" id="verify-order-id">
+    <input type="hidden" name="razorpay_signature" id="verify-signature">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+{% if order.payment_method == 'Razorpay' and is_real_razorpay %}
+<!-- Razorpay script integration -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    const options = {
+        "key": "{{ razorpay_key_id }}",
+        "amount": "{{ amount_paise }}", // in paise
+        "currency": "INR",
+        "name": "Chelu by Sini",
+        "description": "Payment for Order #{{ order.id }}",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response) {
+            // Show processing screen
+            document.getElementById('loading-overlay').style.display = 'flex';
+            document.getElementById('loading-title').innerText = 'Verifying Payment';
+            document.getElementById('loading-desc').innerText = 'Validating cryptographic signature with gateway...';
+            
+            // Pop fields
+            document.getElementById('verify-pay-id').value = response.razorpay_payment_id;
+            document.getElementById('verify-order-id').value = response.razorpay_order_id;
+            document.getElementById('verify-signature').value = response.razorpay_signature;
+            
+            // Submit form
+            document.getElementById('verify-form').submit();
+        },
+        "prefill": {
+            "name": "{{ order.name }}",
+            "email": "{{ order.email }}",
+            "contact": "{{ order.phone_number }}"
+        },
+        "theme": {
+            "color": "#1b3a24"
+        }
+    };
+    const rzp = new Razorpay(options);
+    
+    document.getElementById('rzp-button').onclick = function(e){
+        rzp.open();
+        e.preventDefault();
+    }
+</script>
+{% else %}
+<!-- Simulation JavaScript flows -->
+<script>
+    // Live updates to Card preview
+    const cardNameInput = document.getElementById('card-name');
+    const cardNumInput = document.getElementById('card-number');
+    const cardExpInput = document.getElementById('card-expiry');
+    
+    if (cardNameInput) {
+        cardNameInput.addEventListener('input', function() {
+            document.getElementById('card-name-preview').innerText = this.value.toUpperCase() || 'YOUR NAME';
+        });
+        
+        cardNumInput.addEventListener('input', function() {
+            // Formatting card number (add spaces every 4 characters)
+            let val = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = val.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+            for (let i = 0, len = match.length; i < len; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            if (parts.length > 0) {
+                this.value = parts.join(' ');
+            } else {
+                this.value = val;
+            }
+            document.getElementById('card-num-preview').innerText = this.value || '•••• •••• •••• ••••';
+        });
+        
+        cardExpInput.addEventListener('input', function() {
+            // Format expiry MM/YY
+            let val = this.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            if (val.length >= 2) {
+                this.value = val.substring(0, 2) + '/' + val.substring(2, 4);
+            } else {
+                this.value = val;
+            }
+            document.getElementById('card-exp-preview').innerText = this.value || 'MM/YY';
+        });
+    }
+
+    // OTP Modal Autotab script
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, index) => {
+        input.addEventListener('keyup', (e) => {
+            if (e.key >= 0 && e.key <= 9) {
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            } else if (e.key === "Backspace") {
+                if (index > 0) {
+                    inputs[index - 1].focus();
+                }
+            }
+        });
+    });
+
+    // Handle Forms Submission Simulation
+    const overlay = document.getElementById('loading-overlay');
+    const loadTitle = document.getElementById('loading-title');
+    const loadDesc = document.getElementById('loading-desc');
+    
+    // simulated Card form submission
+    const cardForm = document.getElementById('simulated-card-form');
+    if (cardForm) {
+        cardForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Show verification step 1
+            overlay.style.display = 'flex';
+            loadTitle.innerText = 'Securing Connection';
+            loadDesc.innerText = 'Connecting to banking server...';
+            
+            setTimeout(() => {
+                loadTitle.innerText = 'Checking Card Credentials';
+                loadDesc.innerText = 'Validating card details and limits...';
+                
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    // Open OTP modal
+                    const bootstrapModal = new bootstrap.Modal(document.getElementById('otpModal'));
+                    bootstrapModal.show();
+                    
+                    // Start countdown timer
+                    let timerVal = 45;
+                    const timerElem = document.getElementById('otp-timer');
+                    const interval = setInterval(() => {
+                        timerVal--;
+                        if (timerElem) timerElem.innerText = timerVal;
+                        if (timerVal <= 0) clearInterval(interval);
+                    }, 1000);
+                }, 1500);
+            }, 1500);
+        });
+    }
+
+    // Submit OTP verification
+    const otpSubmitBtn = document.getElementById('submit-otp-btn');
+    if (otpSubmitBtn) {
+        otpSubmitBtn.addEventListener('click', function() {
+            // Hide modal and show final payment processing overlay
+            const modalElem = document.getElementById('otpModal');
+            const instance = bootstrap.Modal.getInstance(modalElem);
+            if (instance) instance.hide();
+            
+            overlay.style.display = 'flex';
+            loadTitle.innerText = 'Authorizing Funds Transfer';
+            loadDesc.innerText = 'Please do not reload this page...';
+            
+            setTimeout(() => {
+                loadTitle.innerText = 'Transaction Successful';
+                loadDesc.innerText = 'Finalizing your order...';
+                
+                setTimeout(() => {
+                    document.getElementById('verify-form').submit();
+                }, 1000);
+            }, 2000);
+        });
+    }
+
+    // simulated UPI form submission
+    const upiForm = document.getElementById('simulated-upi-form');
+    if (upiForm) {
+        upiForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            overlay.style.display = 'flex';
+            loadTitle.innerText = 'Sending UPI Payment Intent';
+            loadDesc.innerText = 'Awaiting authorization request on your UPI app...';
+            
+            setTimeout(() => {
+                loadTitle.innerText = 'Authorization Received';
+                loadDesc.innerText = 'Processing funds transfer...';
+                
+                setTimeout(() => {
+                    loadTitle.innerText = 'Payment Captured';
+                    loadDesc.innerText = 'Redirecting you to order summary...';
+                    
+                    setTimeout(() => {
+                        document.getElementById('verify-form').submit();
+                    }, 1000);
+                }, 1500);
+            }, 2500);
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

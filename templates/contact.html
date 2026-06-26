@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="bg-white py-4 border-bottom mb-4">
+    <div class="container">
+        <h1 class="font-heading mb-0 text-brand">Contact Us</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 mt-2 small">
+                <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-muted text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active text-brand" aria-current="page">Contact</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- Contact Information -->
+        <div class="col-lg-5">
+            <h2 class="font-heading mb-3 text-brand">Get In Touch</h2>
+            <p class="text-muted mb-4">Have questions about sizes, delivery timelines, or bulk custom ordering? Drop us a message, call us, or visit our design studio.</p>
+            
+            <div class="d-flex flex-column gap-4">
+                <div class="d-flex align-items-start">
+                    <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; min-width: 50px;">
+                        <i class="fa-solid fa-location-dot text-brand fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-heading mb-1 text-dark fs-6 fw-bold">Design Studio Location</h5>
+                        <p class="text-muted small mb-0">Sini's Design Studio, 4th Block, Koramangala, Bangalore, Karnataka - 560034</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-start">
+                    <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; min-width: 50px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-brand"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.623-1.023-5.086-2.885-6.948C16.59 1.993 14.133 1.01 11.516 1.01c-5.44 0-9.866 4.372-9.87 9.802 0 1.968.528 3.888 1.527 5.6l-.999 3.649 3.784-.967zM17.15 13.92c-.303-.151-1.793-.88-2.067-.979-.275-.1-.475-.149-.674.15-.199.299-.77.979-.945 1.178-.175.199-.35.224-.653.075-3.007-1.503-4.379-2.514-5.698-4.773-.349-.599.349-.556 1.002-1.859.109-.22.055-.412-.028-.562-.083-.15-.674-1.622-.924-2.225-.243-.585-.49-.505-.674-.515-.175-.01-.375-.01-.575-.01s-.525.075-.8.375c-.275.299-1.05 1.024-1.05 2.5s1.075 2.9 1.225 3.1c.15.199 2.113 3.227 5.12 4.526.715.309 1.273.494 1.708.632.719.228 1.373.196 1.89.119.577-.087 1.793-.732 2.047-1.439.254-.707.254-1.314.178-1.439-.076-.125-.275-.199-.578-.35z"/></svg>
+                    </div>
+                    <div>
+                        <h5 class="font-heading mb-1 text-dark fs-6 fw-bold">Call / WhatsApp Us</h5>
+                        <p class="text-muted small mb-0">
+                            General & Custom Orders: <a href="https://wa.me/919497360705" target="_blank" class="text-brand fw-semibold text-decoration-none">+91 94973 60705</a>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="d-flex align-items-start">
+                    <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px; min-width: 50px;">
+                        <i class="fa-regular fa-envelope text-brand fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-heading mb-1 text-dark fs-6 fw-bold">Email Inquiries</h5>
+                        <p class="text-muted small mb-0">support@chelubysini.com<br>collaborations@chelubysini.com</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="col-lg-7">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <h3 class="font-heading fs-4 mb-4 text-brand">Send A Message</h3>
+                <form action="{% url 'products:contact' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label small fw-semibold">Your Name</label>
+                        <input type="text" name="name" id="name" class="form-control rounded-0" placeholder="e.g. Sini Joy" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-control rounded-0" placeholder="e.g. sini@example.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label small fw-semibold">Your Message</label>
+                        <textarea name="message" id="message" rows="5" class="form-control rounded-0" placeholder="Ask about order details, bulk bookings, size customized designs..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 py-3 text-uppercase small">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="bg-white py-4 border-bottom mb-4">
+    <div class="container">
+        <h1 class="font-heading mb-0 text-brand">About Our Boutique</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 mt-2 small">
+                <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-muted text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active text-brand" aria-current="page">About Us</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row align-items-center g-5 mb-5">
+        <div class="col-lg-6">
+            <h2 class="font-heading mb-3 text-brand">The Story of Chelu</h2>
+            <p class="lead text-muted">Born out of a passion for traditional handloom weaving and classical grace, Chelu by Sini curates the finest Kerala Sarees, Settumundus, and custom blouse edits.</p>
+            <p>Founded by Sini Joy, Chelu aims to preserve and highlight the heritage of Kerala handloom hubs like Balaramapuram, Kuthampully, and Chendamangalam. We source directly from weavers, ensuring 100% genuine yarns, pure gold zari work, and fair wages for local master weavers.</p>
+            <p>From everyday single Kasavu sarees and custom-designed Settumundus to exquisite temple wear and matching ready-made blouses, our collections are selected to offer unparalleled comfort, heritage style, and premium elegance.</p>
+        </div>
+        <div class="col-lg-6">
+            <!-- Styling a premium box for the boutique illustration -->
+            <div class="bg-cream border p-5 text-center text-brand" style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <span class="font-heading fs-1 mb-2" style="font-style: italic; font-weight: 300;">Our Philosophy</span>
+                <div class="w-25 border-top border-brand my-3"></div>
+                <p class="text-muted small px-4">"We believe ethnic wear is not just clothing; it is a canvas of heritage, comfort, and self-expression. Chelu stands for grace, colors, and pure textures."</p>
+                <span class="small fw-semibold text-gold mt-2">— Sini Joy, Founder</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Highlights -->
+    <div class="row g-4 text-center mt-5 pt-4 border-top">
+        <div class="col-md-4">
+            <div class="p-3">
+                <i class="fa-solid fa-gem text-brand fs-1 mb-3"></i>
+                <h4 class="font-heading mb-2">Artisan Centered</h4>
+                <p class="text-muted small">We collaborate with regional weavers and embroiders to preserve heritage crafts.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3">
+                <i class="fa-solid fa-leaf text-brand fs-1 mb-3"></i>
+                <h4 class="font-heading mb-2">Sustainable Fabrics</h4>
+                <p class="text-muted small">We prioritize organic cotton, premium linen, and pure silk over synthetic alternatives.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3">
+                <i class="fa-solid fa-scissors text-brand fs-1 mb-3"></i>
+                <h4 class="font-heading mb-2">Custom Tailoring</h4>
+                <p class="text-muted small">Subtle modifications, custom sizing, and attention to detail define our collections.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

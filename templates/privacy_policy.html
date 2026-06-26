@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="bg-white py-4 border-bottom mb-4">
+    <div class="container">
+        <h1 class="font-heading mb-0 text-brand">Privacy Policy</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 mt-2 small">
+                <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-muted text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active text-brand" aria-current="page">Privacy Policy</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container py-5 text-muted">
+    <div class="bg-white p-4 shadow-sm border border-light">
+        <h2 class="font-heading mb-3 text-brand text-uppercase fs-4">1. Collection of Information</h2>
+        <p>We collect information when you register on our site, place an order, subscribe to our newsletter, or fill out a form. The collected information includes your name, email address, phone number, shipping address, and details necessary to fulfill orders.</p>
+        
+        <h2 class="font-heading mb-3 text-brand text-uppercase fs-4 mt-4">2. Use of Information</h2>
+        <p>Any of the information we collect from you may be used in one of the following ways:</p>
+        <ul>
+            <li>To personalize your experience (your information helps us better respond to your individual needs).</li>
+            <li>To improve our website catalog and customer service responses.</li>
+            <li>To process transactions securely (your information will not be sold, exchanged, or transferred to any other company).</li>
+            <li>To send periodic emails (the email address you provide for order processing may be used to send you updates regarding your order, in addition to occasional news or promotional offers).</li>
+        </ul>
+        
+        <h2 class="font-heading mb-3 text-brand text-uppercase fs-4 mt-4">3. Protection of Information</h2>
+        <p>We implement a variety of security measures to maintain the safety of your personal information when you place an order or enter, submit, or access your personal information. Payment gateway transactions are handled by authenticated service providers (Razorpay, card gateways) and are not stored on our local database.</p>
+        
+        <h2 class="font-heading mb-3 text-brand text-uppercase fs-4 mt-4">4. Cookie Policy</h2>
+        <p>Yes, we use cookies (small files that a site or its service provider transfers to your computer's hard drive through your Web browser) to help us remember and process the items in your shopping cart, understand and save your preferences for future visits, and compile aggregate data about site traffic.</p>
+    </div>
+</div>
+{% endblock %}

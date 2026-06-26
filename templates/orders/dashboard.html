@@ -1,0 +1,695 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Owner Dashboard | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="bg-white py-4 border-bottom mb-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h1 class="font-heading mb-0 text-brand">Owner Administration Dashboard</h1>
+                <p class="text-muted small mb-0">Manage products, orders, customer highlights, and track deliveries.</p>
+            </div>
+            <a href="{% url 'products:home' %}" class="btn btn-brand-outline rounded-0 mt-2 mt-sm-0"><i class="fa-solid fa-store me-2"></i>Go to Storefront</a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <i class="fa-solid fa-indian-rupee-sign text-brand fs-2 mb-2"></i>
+                <h5 class="text-muted small text-uppercase tracking-wider">Total Sales</h5>
+                <h2 class="font-heading text-brand fw-bold mb-0">₹{{ total_sales }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <i class="fa-solid fa-receipt text-gold fs-2 mb-2"></i>
+                <h5 class="text-muted small text-uppercase tracking-wider">Total Orders</h5>
+                <h2 class="font-heading text-brand fw-bold mb-0">{{ total_orders }}</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <i class="fa-solid fa-spinner text-success fs-2 mb-2"></i>
+                <h5 class="text-muted small text-uppercase tracking-wider">Pending Orders</h5>
+                <h2 class="font-heading text-brand fw-bold mb-0">{{ pending_orders }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Sidebar Tabs Nav -->
+        <div class="col-lg-3">
+            <div class="list-group list-group-flush shadow-sm rounded-0 bg-white">
+                <a href="#orders-tab" class="list-group-item list-group-item-action py-3 border-0 active bg-brand" data-bs-toggle="list">
+                    <i class="fa-solid fa-truck-ramp-box me-2"></i>Manage Orders
+                </a>
+                <a href="#products-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-solid fa-shirt me-2"></i>Manage Products
+                </a>
+                <a href="#customers-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-solid fa-users me-2"></i>Customers (CRM)
+                </a>
+                <a href="#coupons-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-solid fa-tags me-2"></i>Promotions (Coupons)
+                </a>
+                <a href="#happy-customers-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-regular fa-face-smile-beam me-2"></i>Happy Customers
+                </a>
+                <a href="#settings-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-solid fa-gears me-2"></i>Store Settings
+                </a>
+            </div>
+        </div>
+
+        <!-- Tab contents -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                
+                <!-- Tab 1: Orders -->
+                <div class="tab-pane fade show active" id="orders-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                        <h3 class="font-heading mb-4 pb-2 border-bottom text-brand">Order Tracking & Fulfilment</h3>
+                        
+                        <!-- Sales Analytics Line Chart -->
+                        <div class="mb-5 bg-light p-4 border shadow-sm">
+                            <h4 class="font-heading text-brand h5 mb-3"><i class="fa-solid fa-chart-line me-2"></i>Sales Analytics (Monthly Revenue)</h4>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="salesAnalyticsChart"></canvas>
+                            </div>
+                        </div>
+
+                        {% if orders %}
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="small text-uppercase text-muted border-bottom">
+                                            <th>ID</th>
+                                            <th>Recipient</th>
+                                            <th>Total</th>
+                                            <th>Payment</th>
+                                            <th>Status</th>
+                                            <th>Tracking Details</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in orders %}
+                                            <tr class="border-bottom">
+                                                <td class="fw-bold">#{{ order.id }}</td>
+                                                <td>
+                                                    <span class="d-block fw-semibold text-dark">{{ order.name }}</span>
+                                                    <span class="text-muted small">{{ order.phone_number }}</span>
+                                                </td>
+                                                <td class="text-brand fw-semibold">₹{{ order.total_price }}</td>
+                                                <td>
+                                                    <span class="small text-muted">{{ order.get_payment_method_display }}</span>
+                                                    {% if order.payment_status %}
+                                                        <span class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-0 small d-block mt-1">Paid</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 rounded-0 small d-block mt-1">Pending</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if order.status == 'Processing' %}
+                                                        <span class="badge bg-warning text-dark rounded-0">{{ order.status }}</span>
+                                                    {% elif order.status == 'Packed' %}
+                                                        <span class="badge bg-info text-dark rounded-0">{{ order.status }}</span>
+                                                    {% elif order.status == 'Shipped' %}
+                                                        <span class="badge bg-primary rounded-0">{{ order.status }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success rounded-0">{{ order.status }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="small">
+                                                    {% if order.tracking_number %}
+                                                        <span class="fw-semibold text-dark">{{ order.courier_partner }}</span>
+                                                        <span class="text-muted d-block" style="font-size: 0.75rem;">ID: {{ order.tracking_number }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted italic small">No tracking info</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-end">
+                                                    <button type="button" class="btn btn-brand py-1 px-3 fs-7 rounded-0" data-bs-toggle="modal" data-bs-target="#updateOrderModal-{{ order.id }}">
+                                                        Update
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Order Status Update Modal -->
+                                            <div class="modal fade" id="updateOrderModal-{{ order.id }}" tabindex="-1" aria-labelledby="updateOrderModalLabel-{{ order.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content rounded-0">
+                                                        <div class="modal-header border-bottom-0">
+                                                            <h5 class="modal-title font-heading text-brand fs-4" id="updateOrderModalLabel-{{ order.id }}">Update Order #{{ order.id }}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'orders:admin_order_update' order.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body">
+                                                                <div class="mb-3">
+                                                                    <label for="status-{{ order.id }}" class="form-label small fw-semibold">Order Fulfiment Status</label>
+                                                                    <select name="status" id="status-{{ order.id }}" class="form-select rounded-0">
+                                                                        <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                                                        <option value="Packed" {% if order.status == 'Packed' %}selected{% endif %}>Packed</option>
+                                                                        <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                                                        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label for="pay_status-{{ order.id }}" class="form-label small fw-semibold">Payment Status</label>
+                                                                    <select name="payment_status" id="pay_status-{{ order.id }}" class="form-select rounded-0">
+                                                                        <option value="True" {% if order.payment_status %}selected{% endif %}>Paid / Completed</option>
+                                                                        <option value="False" {% if not order.payment_status %}selected{% endif %}>Unpaid / Pending</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label for="courier-{{ order.id }}" class="form-label small fw-semibold">Courier Service Partner</label>
+                                                                    <input type="text" name="courier_partner" id="courier-{{ order.id }}" class="form-control rounded-0" placeholder="e.g. BlueDart, DTDC" value="{{ order.courier_partner|default:'' }}">
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label for="tracking-{{ order.id }}" class="form-label small fw-semibold">Tracking Waybill Number</label>
+                                                                    <input type="text" name="tracking_number" id="tracking-{{ order.id }}" class="form-control rounded-0" placeholder="e.g. CH987654321IN" value="{{ order.tracking_number|default:'' }}">
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer border-top-0">
+                                                                <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-brand py-2">Save Updates</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-receipt fs-1 opacity-25 mb-2"></i>
+                                <p>No orders placed yet in the database.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tab 2: Products -->
+                <div class="tab-pane fade" id="products-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h3 class="font-heading text-brand mb-0">Active Products Catalog</h3>
+                            <button type="button" class="btn btn-brand py-2 px-3 rounded-0" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                                <i class="fa-solid fa-plus me-2"></i>Add Saree / Item
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="small text-uppercase text-muted border-bottom">
+                                        <th>Product</th>
+                                        <th>Category</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Featured</th>
+                                        <th>Best Seller</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product in products %}
+                                        <tr class="border-bottom">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="border me-2" style="width: 40px; height: 50px; overflow: hidden; position: relative;">
+                                                        {% if product.image %}
+                                                            <img src="{{ product.image.url }}" alt="" class="w-100 h-100 object-fit-cover">
+                                                        {% else %}
+                                                            <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center"><i class="fa fa-image text-muted"></i></div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <span class="fw-semibold text-dark">{{ product.name }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ product.category.name }}</td>
+                                            <td class="text-brand">₹{{ product.price }}</td>
+                                            <td>{{ product.stock }}</td>
+                                            <td>
+                                                {% if product.featured %}
+                                                    <span class="text-success"><i class="fa-solid fa-circle-check"></i> Yes</span>
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if product.best_seller %}
+                                                    <span class="text-gold"><i class="fa-solid fa-award"></i> Yes</span>
+                                                {% else %}
+                                                    <span class="text-muted">—</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Happy Customers -->
+                <div class="tab-pane fade" id="happy-customers-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h3 class="font-heading text-brand mb-0">Happy Customers Gallery</h3>
+                            <button type="button" class="btn btn-brand py-2 px-3 rounded-0" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                                <i class="fa-solid fa-camera-retro me-2"></i>Upload Photo
+                            </button>
+                        </div>
+
+                        {% if happy_customers %}
+                            <div class="row g-3">
+                                {% for customer in happy_customers %}
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card border rounded-0 shadow-sm overflow-hidden h-100">
+                                            <div style="height: 200px; overflow: hidden; position: relative;">
+                                                {% if customer.image %}
+                                                    <img src="{{ customer.image.url }}" alt="{{ customer.name }}" class="w-100 h-100 object-fit-cover">
+                                                {% endif %}
+                                            </div>
+                                            <div class="p-3">
+                                                <h6 class="font-heading mb-1">{{ customer.name }}</h5>
+                                                <span class="small text-muted d-block mb-2"><i class="fa-solid fa-location-dot me-1"></i>{{ customer.location }}</span>
+                                                {% if customer.quote %}
+                                                    <p class="small text-muted mb-0 italic">"{{ customer.quote }}"</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-regular fa-face-smile-beam fs-1 opacity-25 mb-2"></i>
+                                <p>No customer photos uploaded yet. Upload one to display on the homepage!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tab 4: Customers (CRM) -->
+                <div class="tab-pane fade" id="customers-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <h3 class="font-heading text-brand mb-4 pb-2 border-bottom">Customer Management (CRM)</h3>
+                        
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="small text-uppercase text-muted border-bottom">
+                                        <th>Customer</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Date Joined</th>
+                                        <th class="text-center">Orders Count</th>
+                                        <th class="text-end">Lifetime Value (LTV)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in customers %}
+                                        <tr class="border-bottom">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-brand-light text-brand rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; background-color: var(--brand-light);">
+                                                        <i class="fa-solid fa-user small"></i>
+                                                    </div>
+                                                    <span class="fw-semibold text-dark">{{ customer.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ customer.email }}</td>
+                                            <td>
+                                                {% if customer.is_staff %}
+                                                    <span class="badge bg-danger rounded-0">Staff</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary rounded-0">Customer</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small text-muted">{{ customer.date_joined|date:"M d, Y" }}</td>
+                                            <td class="text-center fw-semibold text-dark">{{ customer.order_count }}</td>
+                                            <td class="text-end text-brand fw-bold">₹{{ customer.ltv }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">No registered customers found.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 5: Promotions (Coupons) -->
+                <div class="tab-pane fade" id="coupons-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h3 class="font-heading text-brand mb-0">Discount Coupon Codes</h3>
+                            <button type="button" class="btn btn-brand py-2 px-3 rounded-0" data-bs-toggle="modal" data-bs-target="#addCouponModal">
+                                <i class="fa-solid fa-plus me-2"></i>Add Coupon Code
+                            </button>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="small text-uppercase text-muted border-bottom">
+                                        <th>Coupon Code</th>
+                                        <th>Discount %</th>
+                                        <th>Status</th>
+                                        <th>Valid Until</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for coupon in coupons %}
+                                        <tr class="border-bottom">
+                                            <td class="fw-bold text-dark"><span class="bg-light px-2 py-1 border border-dashed">{{ coupon.code }}</span></td>
+                                            <td class="text-brand fw-semibold">{{ coupon.discount_percent }}% OFF</td>
+                                            <td>
+                                                {% if coupon.active %}
+                                                    <span class="badge bg-success rounded-0">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary rounded-0">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small {% if coupon.active %}text-dark{% else %}text-muted{% endif %}">
+                                                {{ coupon.valid_until|date:"M d, Y H:i" }}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">No coupon codes configured yet.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 6: Store Settings -->
+                <div class="tab-pane fade" id="settings-tab">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <h3 class="font-heading text-brand mb-4 pb-2 border-bottom">Boutique Global Settings</h3>
+                        
+                        <form method="post" action="{% url 'orders:admin_settings_update' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="settings-store-name" class="form-label small fw-semibold">Store / Boutique Name</label>
+                                    <input type="text" name="store_name" id="settings-store-name" class="form-control rounded-0" value="{{ boutique_settings.store_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="settings-phone" class="form-label small fw-semibold">Contact Phone Number</label>
+                                    <input type="text" name="phone" id="settings-phone" class="form-control rounded-0" value="{{ boutique_settings.phone }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="settings-email" class="form-label small fw-semibold">Contact Email Address</label>
+                                    <input type="email" name="email" id="settings-email" class="form-control rounded-0" value="{{ boutique_settings.email }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="settings-shipping" class="form-label small fw-semibold">Flat Shipping Rate (₹)</label>
+                                    <input type="number" name="shipping_rate" id="settings-shipping" step="0.01" min="0" class="form-control rounded-0" value="{{ boutique_settings.shipping_rate }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="settings-hours" class="form-label small fw-semibold">Studio Store Hours</label>
+                                    <input type="text" name="hours" id="settings-hours" class="form-control rounded-0" value="{{ boutique_settings.hours }}" placeholder="e.g. Mon - Sat: 10:00 AM - 7:00 PM" required>
+                                </div>
+                                <div class="col-12">
+                                    <label for="settings-qr" class="form-label small fw-semibold">UPI Payment QR Code Image</label>
+                                    <input type="file" name="upi_qr_code" id="settings-qr" class="form-control rounded-0" accept="image/*">
+                                    {% if boutique_settings.upi_qr_code %}
+                                        <div class="mt-2">
+                                            <span class="small text-muted d-block mb-1">Active UPI QR Code:</span>
+                                            <img src="{{ boutique_settings.upi_qr_code.url }}" class="border bg-white shadow-sm p-1" style="max-height: 150px; width: auto;" alt="Active UPI QR Code">
+                                        </div>
+                                    {% else %}
+                                        <span class="small text-muted d-block mt-1">No custom QR code uploaded. Currently displaying default mock QR code.</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12">
+                                    <label for="settings-address" class="form-label small fw-semibold">Design Studio Postal Address</label>
+                                    <textarea name="address" id="settings-address" rows="3" class="form-control rounded-0" required>{{ boutique_settings.address }}</textarea>
+                                </div>
+                                <div class="col-12 text-end mt-4">
+                                    <button type="submit" class="btn btn-brand px-4 py-2"><i class="fa-solid fa-save me-2"></i>Save Settings</button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Product -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title font-heading text-brand fs-4" id="addProductModalLabel">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_product_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="prod-category" class="form-label small fw-semibold">Saree / Product Category</label>
+                        <select name="category" id="prod-category" class="form-select rounded-0" required>
+                            <option value="" disabled selected>Select category...</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prod-name" class="form-label small fw-semibold">Product Name</label>
+                        <input type="text" name="name" id="prod-name" class="form-control rounded-0" placeholder="e.g. Balaramapuram Gold Border Saree" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prod-description" class="form-label small fw-semibold">Description</label>
+                        <textarea name="description" id="prod-description" rows="3" class="form-control rounded-0" placeholder="Yarn details, border weave patterns..." required></textarea>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="prod-price" class="form-label small fw-semibold">Price (₹)</label>
+                            <input type="number" name="price" id="prod-price" step="0.01" min="0" class="form-control rounded-0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prod-stock" class="form-label small fw-semibold">Stock Quantity</label>
+                            <input type="number" name="stock" id="prod-stock" min="0" class="form-control rounded-0" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="prod-image" class="form-label small fw-semibold">Product Image File</label>
+                        <input type="file" name="image" id="prod-image" class="form-control rounded-0" accept="image/*" required>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="featured" id="prod-featured">
+                        <label class="form-check-label small" for="prod-featured">Mark as Featured (Show in Homepage section)</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="best_seller" id="prod-bestseller">
+                        <label class="form-check-label small" for="prod-bestseller">Mark as Best Seller (Show in Best Sellers section)</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand py-2">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Happy Customer Testimonial -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title font-heading text-brand fs-4" id="addCustomerModalLabel">Upload Customer Feature</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_customer_photo_upload' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cust-name" class="form-label small fw-semibold">Customer Name</label>
+                        <input type="text" name="name" id="cust-name" class="form-control rounded-0" placeholder="e.g. Priyanjali K." required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cust-location" class="form-label small fw-semibold">Location / City</label>
+                        <input type="text" name="location" id="cust-location" class="form-control rounded-0" placeholder="e.g. Kochi, Kerala" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cust-quote" class="form-label small fw-semibold">Testimonial Quote</label>
+                        <textarea name="quote" id="cust-quote" rows="3" class="form-control rounded-0" placeholder="Write the review or feedback quote..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cust-image" class="form-label small fw-semibold">Happy Customer Photo</label>
+                        <input type="file" name="image" id="cust-image" class="form-control rounded-0" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand py-2">Upload Testimonial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Discount Coupon -->
+<div class="modal fade" id="addCouponModal" tabindex="-1" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title font-heading text-brand fs-4" id="addCouponModalLabel">Create Promo Coupon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_coupon_add' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="coupon-code" class="form-label small fw-semibold">Coupon Promo Code</label>
+                        <input type="text" name="code" id="coupon-code" class="form-control rounded-0" placeholder="e.g. FESTIVE20" style="text-transform: uppercase;" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="coupon-discount" class="form-label small fw-semibold">Discount Percentage (%)</label>
+                        <input type="number" name="discount_percent" id="coupon-discount" min="1" max="100" class="form-control rounded-0" placeholder="e.g. 20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="coupon-valid-until" class="form-label small fw-semibold">Expiration Date & Time</label>
+                        <input type="datetime-local" name="valid_until" id="coupon-valid-until" class="form-control rounded-0" required>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="active" id="coupon-active" checked>
+                        <label class="form-check-label small" for="coupon-active">Set as Active immediately</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand py-2">Create Coupon</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('salesAnalyticsChart');
+        if (ctx) {
+            const brandPrimary = '#1b3a24';
+            const brandSecondary = '#c5a059';
+            
+            const chartCtx = ctx.getContext('2d');
+            const gradientFill = chartCtx.createLinearGradient(0, 0, 0, 300);
+            gradientFill.addColorStop(0, 'rgba(27, 58, 36, 0.4)');
+            gradientFill.addColorStop(1, 'rgba(250, 247, 240, 0.1)');
+            
+            const labels = {{ chart_labels|safe }};
+            const data = {{ chart_data|safe }};
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Monthly Revenue (₹)',
+                        data: data,
+                        borderColor: brandSecondary,
+                        backgroundColor: gradientFill,
+                        fill: true,
+                        borderWidth: 3,
+                        pointBackgroundColor: brandPrimary,
+                        pointBorderColor: brandSecondary,
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        tension: 0.35
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(27, 58, 36, 0.95)',
+                            titleFont: {
+                                family: 'Playfair Display',
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: 'Montserrat',
+                                size: 13
+                            },
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label = 'Revenue: ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Montserrat',
+                                    size: 11
+                                },
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Montserrat',
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

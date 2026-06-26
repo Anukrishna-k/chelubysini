@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chelu by Sini | Premium Ethnic Boutique{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-slider-section p-0">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="6000">
+        <!-- Indicators -->
+        <div class="carousel-indicators carousel-indicators-custom">
+            {% for slide in hero_slides %}
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="indicator-dot {% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+            {% endfor %}
+        </div>
+
+        <div class="carousel-inner">
+            {% for slide in hero_slides %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="container py-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 mb-4 mb-lg-0 text-center text-lg-start ps-lg-5">
+                            <span class="hero-subtitle text-uppercase tracking-widest">{{ slide.subtitle }}</span>
+                            <h1 class="hero-title brand-font text-brand mt-2">{{ slide.title }}</h1>
+                            <div class="mt-4">
+                                <a href="{% if slide.button_url %}{{ slide.button_url }}{% else %}{% url 'products:product_list' %}{% endif %}" class="btn btn-brand-gold">{{ slide.button_text }}</a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 text-center position-relative">
+                            <div class="position-relative d-inline-block">
+                                <div class="position-absolute translate-middle-x bg-brand opacity-5 rounded-circle hero-circle-bg" style="width: 450px; height: 450px; left: 50%; top: -10%; z-index: -1;"></div>
+                                {% if slide.image %}
+                                    <img src="{% if slide.image.url %}{{ slide.image.url }}{% else %}{{ slide.image }}{% endif %}" alt="{{ slide.title }}" class="hero-slider-img img-fluid {% if forloop.first %}hero-logo-img{% endif %}">
+                                {% else %}
+                                    <div class="rounded-0 overflow-hidden shadow-lg border border-white d-flex flex-column justify-content-center align-items-center text-white p-4 mx-auto" style="width: 380px; max-width: 100%; height: 500px; background: linear-gradient(135deg, #c5a059 0%, #1b3a24 100%);">
+                                        <span class="font-heading fs-1 mb-2" style="font-style: italic; font-weight: 300;">Chelu</span>
+                                        <span class="text-uppercase tracking-widest fs-6" style="letter-spacing: 0.25em;">by Sini</span>
+                                        <div class="w-25 border-top border-white my-3"></div>
+                                        <p class="text-center small opacity-75">Premium Kerala Handlooms. Crafted with love, designed for the modern ethnic soul.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Categories Circles section -->
+<section class="container mb-5">
+    <div class="section-header">
+        <h2>Curated Categories</h2>
+        <p>Explore our boutique categories for every style and occasion</p>
+    </div>
+    <div class="row justify-content-center g-4">
+        {% for category in categories %}
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-bubble-card">
+                <a href="{% url 'products:product_list' %}?category={{ category.name }}" class="text-decoration-none">
+                    <div class="category-bubble-image d-flex align-items-center justify-content-center bg-white">
+                        {% if category.image %}
+                            <img src="{{ category.image.url }}" alt="{{ category.name }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-brand font-heading fs-3 fw-bold">{{ category.name|slice:":1" }}</div>
+                        {% endif %}
+                    </div>
+                    <span class="category-bubble-title">{{ category.name }}</span>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Default category bubbles when database is fresh -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-bubble-card">
+                <a href="{% url 'products:product_list' %}?category=Kasavu Sarees" class="text-decoration-none">
+                    <div class="category-bubble-image d-flex align-items-center justify-content-center bg-white border">
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-brand font-heading fs-3 fw-bold">K</div>
+                    </div>
+                    <span class="category-bubble-title">Kasavu Sarees</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-bubble-card">
+                <a href="{% url 'products:product_list' %}?category=Settumundu" class="text-decoration-none">
+                    <div class="category-bubble-image d-flex align-items-center justify-content-center bg-white border">
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-brand font-heading fs-3 fw-bold">S</div>
+                    </div>
+                    <span class="category-bubble-title">Settumundu</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-bubble-card">
+                <a href="{% url 'products:product_list' %}?category=Designer Sarees" class="text-decoration-none">
+                    <div class="category-bubble-image d-flex align-items-center justify-content-center bg-white border">
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-brand font-heading fs-3 fw-bold">D</div>
+                    </div>
+                    <span class="category-bubble-title">Designer Sarees</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="category-bubble-card">
+                <a href="{% url 'products:product_list' %}?category=Silk Sarees" class="text-decoration-none">
+                    <div class="category-bubble-image d-flex align-items-center justify-content-center bg-white border">
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-brand font-heading fs-3 fw-bold">S</div>
+                    </div>
+                    <span class="category-bubble-title">Silk Sarees</span>
+                </a>
+            </div>
+        </div>
+        <!-- Categories removed: Blouses and Jewellery -->
+        {% endfor %}
+    </div>
+</section>
+
+<!-- New Arrivals -->
+<section class="container mb-5">
+    <div class="section-header">
+        <h2>New Arrivals</h2>
+        <p>Fresh additions to our collection. Be the first to shop.</p>
+    </div>
+    <div class="row g-4">
+        {% for product in new_arrivals %}
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="product-card">
+                <div class="product-badges">
+                    <span class="badge-new">New</span>
+                </div>
+                <a href="{% url 'wishlist:wishlist_add' product.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                </a>
+                <div class="product-image-wrapper">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
+                    {% endif %}
+                </div>
+                <div class="product-card-body">
+                    <div>
+                        <div class="product-card-category">{{ product.category.name }}</div>
+                        <h4 class="product-card-title"><a href="{% url 'products:product_detail' product.id %}">{{ product.name }}</a></h4>
+                        <div class="star-rating mb-2">
+                            {% if product.average_rating > 0 %}
+                                <i class="fa-solid fa-star"></i> <span class="text-dark small">{{ product.average_rating }}</span>
+                            {% else %}
+                                <i class="fa-regular fa-star text-muted"></i> <span class="text-muted small">No reviews</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="product-card-price">₹{{ product.price }}</span>
+                        <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-brand p-2 px-3 fs-6 rounded-0"><i class="fa-solid fa-bag-shopping"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">
+            <p>No products available yet. Check back soon!</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured banner -->
+<section class="bg-white py-5 mb-5 border-top border-bottom">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-5 mb-4 mb-lg-0 text-center">
+                <div class="bg-cream p-4 border" style="height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <span class="text-gold tracking-widest small mb-2" style="letter-spacing: 0.25em;">KERALA WEAVES</span>
+                    <h3 class="font-heading text-brand fs-1 mb-3">Onam Festive Edit</h3>
+                    <p class="text-muted text-center px-3 small">Unveil the luxury of handloom cotton combined with gold zari motifs. Curated designs that bring traditional charm to your celebrations.</p>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-brand-outline mt-3">View Collection</a>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <h3 class="brand-font mb-4">Featured Collections</h3>
+                <div class="row g-4">
+                    {% for product in featured_products|slice:":2" %}
+                    <div class="col-md-6">
+                        <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 d-flex flex-row">
+                            <div style="width: 120px; min-width: 120px; height: 160px; position: relative;">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover">
+                                {% else %}
+                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center"><i class="fa fa-image text-muted"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="p-3 d-flex flex-column justify-content-between">
+                                <div>
+                                    <span class="text-uppercase text-muted small" style="font-size: 0.7rem; letter-spacing: 0.1em;">{{ product.category.name }}</span>
+                                    <h5 class="font-heading mt-1" style="font-size: 1rem;"><a href="{% url 'products:product_detail' product.id %}" class="text-dark text-decoration-none">{{ product.name }}</a></h5>
+                                    <span class="text-brand fw-bold">₹{{ product.price }}</span>
+                                </div>
+                                <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-brand py-1 px-3 fs-7 rounded-0">Add</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">Stay tuned for our upcoming seasonal showcases!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Best Sellers -->
+<section class="container mb-5">
+    <div class="section-header">
+        <h2>Best Sellers</h2>
+        <p>Customer favorites that sell out quickly. Grab yours before they're gone.</p>
+    </div>
+    <div class="row g-4">
+        {% for product in best_sellers %}
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="product-card">
+                <div class="product-badges">
+                    <span class="badge-featured">Hot</span>
+                </div>
+                <a href="{% url 'wishlist:wishlist_add' product.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
+                    <i class="fa-regular fa-heart"></i>
+                </a>
+                <div class="product-image-wrapper">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
+                    {% endif %}
+                </div>
+                <div class="product-card-body">
+                    <div>
+                        <div class="product-card-category">{{ product.category.name }}</div>
+                        <h4 class="product-card-title"><a href="{% url 'products:product_detail' product.id %}">{{ product.name }}</a></h4>
+                        <div class="star-rating mb-2">
+                            {% if product.average_rating > 0 %}
+                                <i class="fa-solid fa-star"></i> <span class="text-dark small">{{ product.average_rating }}</span>
+                            {% else %}
+                                <i class="fa-regular fa-star text-muted"></i> <span class="text-muted small">No reviews</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="product-card-price">₹{{ product.price }}</span>
+                        <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-brand p-2 px-3 fs-6 rounded-0"><i class="fa-solid fa-bag-shopping"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">
+            <p>Our top items will be listed here soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Happy Customers Section -->
+<section class="container mb-5 py-4 border-top">
+    <div class="section-header">
+        <h2>Stories of Elegance</h2>
+        <p>Our lovely customers showcasing Chelu handlooms on their special days</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        {% for customer in happy_customers %}
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 bg-white">
+                <div style="padding-top: 100%; position: relative; overflow: hidden;">
+                    <img src="{{ customer.image.url }}" alt="{{ customer.name }}" class="position-absolute w-100 h-100 object-fit-cover" style="top: 0; left: 0;">
+                </div>
+                <div class="p-3 text-center">
+                    <span class="fw-bold text-dark d-block mb-1">{{ customer.name }}</span>
+                    <span class="text-gold small d-block mb-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>{{ customer.location }}</span>
+                    {% if customer.quote %}
+                        <p class="small text-muted mb-0 italic" style="font-style: italic;">"{{ customer.quote }}"</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Mock Fallbacks -->
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 bg-white">
+                <div style="padding-top: 100%; position: relative; background: #eef2eb; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-brand font-heading fs-1 fw-bold opacity-25">A</span>
+                </div>
+                <div class="p-3 text-center">
+                    <span class="fw-bold text-dark d-block mb-1">Aishwarya R.</span>
+                    <span class="text-gold small d-block mb-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>Kochi, Kerala</span>
+                    <p class="small text-muted mb-0" style="font-style: italic;">"The Kasavu saree was extremely soft and the gold border was so pure. Absolutely loved wearing it for Onam!"</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 bg-white">
+                <div style="padding-top: 100%; position: relative; background: #faf7f0; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-brand font-heading fs-1 fw-bold opacity-25">M</span>
+                </div>
+                <div class="p-3 text-center">
+                    <span class="fw-bold text-dark d-block mb-1">Meera Krishnan</span>
+                    <span class="text-gold small d-block mb-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>Trivandrum</span>
+                    <p class="small text-muted mb-0" style="font-style: italic;">"Loved the Kuthampully Settumundu double zari! Drape was perfect and comfortable."</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

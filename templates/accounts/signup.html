@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Account | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="form-card shadow-sm">
+                <div class="text-center mb-4">
+                    <h2 class="font-heading text-brand fs-1">Create Account</h2>
+                    <p class="text-muted">Join the Chelu Club for premium shopping experiences</p>
+                </div>
+                
+                <form method="post" action="{% url 'accounts:signup' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label small fw-semibold">Username</label>
+                        <input type="text" name="username" id="username" class="form-control rounded-0 py-2" placeholder="e.g. sinijoy" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label small fw-semibold">Email Address</label>
+                        <input type="email" name="email" id="email" class="form-control rounded-0 py-2" placeholder="e.g. sini@example.com" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label small fw-semibold">Password</label>
+                        <input type="password" name="password" id="password" class="form-control rounded-0 py-2" placeholder="••••••••" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-brand w-100 py-2 mb-3 mt-4">Sign Up</button>
+                    
+                    <div class="text-center mt-3">
+                        <span class="text-muted small">Already have an account?</span>
+                        <a href="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" class="text-brand small fw-semibold text-decoration-none ms-1">Login Here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shop Collection | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="bg-white py-4 border-bottom mb-4">
+    <div class="container">
+        <h1 class="font-heading mb-0 text-brand">
+            {% if query %}
+                Search Results for "{{ query }}"
+            {% elif selected_category %}
+                {{ selected_category }}
+            {% else %}
+                All Collections
+            {% endif %}
+        </h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 mt-2 small">
+                <li class="breadcrumb-item"><a href="{% url 'products:home' %}" class="text-muted text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}" class="text-muted text-decoration-none">Shop</a></li>
+                {% if selected_category %}
+                    <li class="breadcrumb-item active text-brand" aria-current="page">{{ selected_category }}</li>
+                {% endif %}
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        <!-- Sidebar Filters -->
+        <div class="col-lg-3">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                <h4 class="font-heading fs-5 mb-3 pb-2 border-bottom text-brand">Categories</h4>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'products:product_list' %}" class="text-decoration-none {% if not selected_category %}fw-bold text-brand{% else %}text-muted{% endif %}">
+                        All Collections
+                    </a>
+                    {% for category in categories %}
+                        <a href="{% url 'products:product_list' %}?category={{ category.name }}" class="text-decoration-none {% if selected_category|lower == category.name|lower %}fw-bold text-brand{% else %}text-muted{% endif %}">
+                            {{ category.name }}
+                        </a>
+                    {% empty %}
+                        <a href="{% url 'products:product_list' %}?category=Kasavu Sarees" class="text-decoration-none {% if selected_category|lower == 'kasavu sarees' %}fw-bold text-brand{% else %}text-muted{% endif %}">Kasavu Sarees</a>
+                        <a href="{% url 'products:product_list' %}?category=Settumundu" class="text-decoration-none {% if selected_category|lower == 'settumundu' %}fw-bold text-brand{% else %}text-muted{% endif %}">Settumundu</a>
+                        <a href="{% url 'products:product_list' %}?category=Designer Sarees" class="text-decoration-none {% if selected_category|lower == 'designer sarees' %}fw-bold text-brand{% else %}text-muted{% endif %}">Designer Sarees</a>
+                        <a href="{% url 'products:product_list' %}?category=Silk Sarees" class="text-decoration-none {% if selected_category|lower == 'silk sarees' %}fw-bold text-brand{% else %}text-muted{% endif %}">Silk Sarees</a>
+                        <a href="{% url 'products:product_list' %}?category=Ready-made Blouses" class="text-decoration-none {% if selected_category|lower == 'ready-made blouses' %}fw-bold text-brand{% else %}text-muted{% endif %}">Blouses</a>
+                        <a href="{% url 'products:product_list' %}?category=Traditional Jewellery" class="text-decoration-none {% if selected_category|lower == 'traditional jewellery' %}fw-bold text-brand{% else %}text-muted{% endif %}">Jewellery</a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                <h4 class="font-heading fs-5 mb-3 pb-2 border-bottom text-brand">Filter By Price</h4>
+                <form action="{% url 'products:product_list' %}" method="get">
+                    {% if selected_category %}
+                        <input type="hidden" name="category" value="{{ selected_category }}">
+                    {% endif %}
+                    <div class="mb-3">
+                        <label for="min_price" class="form-label small text-muted">Min Price (₹)</label>
+                        <input type="number" name="min_price" id="min_price" class="form-control rounded-0" placeholder="0" value="{{ min_price|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="max_price" class="form-label small text-muted">Max Price (₹)</label>
+                        <input type="number" name="max_price" id="max_price" class="form-control rounded-0" placeholder="5000" value="{{ max_price|default:'' }}">
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 py-2">Apply Filters</button>
+                    {% if min_price or max_price %}
+                        <a href="{% url 'products:product_list' %}{% if selected_category %}?category={{ selected_category }}{% endif %}" class="btn btn-outline-secondary w-100 py-2 mt-2 rounded-0 text-uppercase small" style="font-size: 0.8rem;">Clear Price</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="col-lg-9">
+            <div class="row g-4">
+                {% for product in products %}
+                    <div class="col-6 col-sm-6 col-md-4">
+                        <div class="product-card">
+
+                            {% if product.featured %}
+                                <div class="product-badges">
+                                    <span class="badge-featured">Featured</span>
+                                </div>
+                            {% endif %}
+                            <a href="{% url 'wishlist:wishlist_add' product.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
+                                <i class="fa-regular fa-heart"></i>
+                            </a>
+                            <div class="product-image-wrapper">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                                {% else %}
+                                    <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="product-card-body">
+                                <div>
+                                    <div class="product-card-category">{{ product.category.name }}</div>
+                                    <h4 class="product-card-title"><a href="{% url 'products:product_detail' product.id %}">{{ product.name }}</a></h4>
+                                    <div class="star-rating mb-2">
+                                        {% if product.average_rating > 0 %}
+                                            <i class="fa-solid fa-star"></i> <span class="text-dark small">{{ product.average_rating }}</span>
+                                        {% else %}
+                                            <i class="fa-regular fa-star text-muted"></i> <span class="text-muted small">No reviews</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="product-card-price">₹{{ product.price }}</span>
+                                    <form action="{% url 'cart:cart_add' product.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-brand p-2 px-3 fs-6 rounded-0"><i class="fa-solid fa-bag-shopping"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <div class="bg-white p-5 rounded shadow-sm border border-light">
+                            <i class="fa-solid fa-shirt fs-1 text-brand opacity-25 mb-3"></i>
+                            <h3 class="font-heading">No Products Found</h3>
+                            <p class="text-muted">We couldn't find any products matching your selection. Try clearing filters or checking other categories.</p>
+                            <a href="{% url 'products:product_list' %}" class="btn btn-brand mt-2">View All Products</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

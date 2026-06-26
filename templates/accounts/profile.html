@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="card border-0 rounded-0 shadow-sm p-4 bg-white text-center mb-4">
+                <div class="avatar-wrapper mb-3 mx-auto d-flex align-items-center justify-content-center bg-brand text-white font-heading fs-2 fw-bold" style="width: 70px; height: 70px; border-radius: 50%;">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <h4 class="font-heading mb-1 text-brand">{% if user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</h4>
+                <p class="text-muted small mb-0">{{ user.email }}</p>
+                <div class="badge bg-cream text-brand border mt-2 px-3 py-2 small">Chelu Club Member</div>
+            </div>
+            
+            <div class="list-group list-group-flush shadow-sm rounded-0 bg-white">
+                <a href="#personal-info" class="list-group-item list-group-item-action py-3 border-0 active bg-brand" data-bs-toggle="list">
+                    <i class="fa-regular fa-user me-2"></i>Personal Info & Address
+                </a>
+                <a href="#orders-history" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-solid fa-receipt me-2"></i>Order History
+                </a>
+                <a href="#wishlist-quick" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
+                    <i class="fa-regular fa-heart me-2"></i>Wishlist Quick-view
+                </a>
+            </div>
+        </div>
+
+        <!-- Details Area -->
+        <div class="col-lg-9">
+            <div class="tab-content">
+                <!-- Personal Info Tab -->
+                <div class="tab-pane fade show active" id="personal-info">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                        <h3 class="font-heading mb-4 pb-2 border-bottom text-brand">Edit Profile Details</h3>
+                        <form method="post" action="{% url 'accounts:profile' %}">
+                            {% csrf_token %}
+                            
+                            <h5 class="font-heading text-gold mb-3 small text-uppercase tracking-wider">Account Details</h5>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label small fw-semibold">First Name</label>
+                                    <input type="text" name="first_name" id="first_name" class="form-control rounded-0" value="{{ user.first_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label small fw-semibold">Last Name</label>
+                                    <input type="text" name="last_name" id="last_name" class="form-control rounded-0" value="{{ user.last_name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label small fw-semibold">Email Address</label>
+                                    <input type="email" name="email" id="email" class="form-control rounded-0" value="{{ user.email }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label small fw-semibold">Phone Number</label>
+                                    <input type="tel" name="phone" id="phone" class="form-control rounded-0" value="{{ profile.phone_number|default:'' }}" required>
+                                </div>
+                            </div>
+                            
+                            <h5 class="font-heading text-gold mb-3 small text-uppercase tracking-wider">Default Shipping Address</h5>
+                            <div class="mb-3">
+                                <label for="address" class="form-label small fw-semibold">Street Address</label>
+                                <textarea name="address" id="address" rows="3" class="form-control rounded-0" required>{{ profile.address|default:'' }}</textarea>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label for="city" class="form-label small fw-semibold">City</label>
+                                    <input type="text" name="city" id="city" class="form-control rounded-0" value="{{ profile.city|default:'' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="state" class="form-label small fw-semibold">State</label>
+                                    <input type="text" name="state" id="state" class="form-control rounded-0" value="{{ profile.state|default:'' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="pincode" class="form-label small fw-semibold">Pincode</label>
+                                    <input type="text" name="pincode" id="pincode" class="form-control rounded-0" value="{{ profile.pincode|default:'' }}" required>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-brand">Save Profile Details</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Order History Tab -->
+                <div class="tab-pane fade" id="orders-history">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                        <h3 class="font-heading mb-4 pb-2 border-bottom text-brand">My Order History</h3>
+                        {% if orders %}
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="small text-uppercase text-muted border-bottom">
+                                            <th>Order #</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Total Price</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in orders %}
+                                            <tr class="border-bottom">
+                                                <td class="fw-bold">#{{ order.id }}</td>
+                                                <td>{{ order.created_at|date:"d M Y" }}</td>
+                                                <td>
+                                                    {% if order.status == 'Processing' %}
+                                                        <span class="badge bg-warning text-dark rounded-0">{{ order.status }}</span>
+                                                    {% elif order.status == 'Packed' %}
+                                                        <span class="badge bg-info text-dark rounded-0">{{ order.status }}</span>
+                                                    {% elif order.status == 'Shipped' %}
+                                                        <span class="badge bg-primary rounded-0">{{ order.status }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success rounded-0">{{ order.status }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-brand fw-semibold">₹{{ order.total_price }}</td>
+                                                <td class="text-end">
+                                                    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-brand-outline py-1 px-3 fs-7 rounded-0">Track</a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-receipt fs-1 opacity-25 mb-3"></i>
+                                <p>You haven't placed any orders yet.</p>
+                                <a href="{% url 'products:product_list' %}" class="btn btn-brand mt-2">Start Shopping</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Wishlist Tab -->
+                <div class="tab-pane fade" id="wishlist-quick">
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white">
+                        <h3 class="font-heading mb-4 pb-2 border-bottom text-brand">My Saved Items</h3>
+                        {% if wishlist_items %}
+                            <div class="row g-3">
+                                {% for item in wishlist_items %}
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 d-flex flex-row">
+                                            <div style="width: 90px; min-width: 90px; height: 120px; position: relative;">
+                                                {% if item.product.image %}
+                                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-100 h-100 object-fit-cover">
+                                                {% else %}
+                                                    <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center"><i class="fa fa-image text-muted"></i></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="p-3 d-flex flex-column justify-content-between flex-grow-1">
+                                                <div>
+                                                    <h6 class="font-heading mb-0 text-truncate" style="max-width: 120px;">
+                                                        <a href="{% url 'products:product_detail' item.product.id %}" class="text-dark text-decoration-none">{{ item.product.name }}</a>
+                                                    </h6>
+                                                    <span class="text-brand fw-bold small">₹{{ item.product.price }}</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mt-2">
+                                                    <a href="{% url 'wishlist:wishlist_move_to_cart' item.product.id %}" class="text-brand fs-7 text-decoration-none fw-semibold">Add to Bag</a>
+                                                    <a href="{% url 'wishlist:wishlist_remove' item.product.id %}" class="text-danger fs-7 text-decoration-none"><i class="fa-solid fa-trash-can"></i></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div class="text-end mt-4">
+                                <a href="{% url 'wishlist:wishlist_detail' %}" class="btn btn-brand-outline rounded-0">Go to Wishlist</a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5 text-muted">
+                                <i class="fa-regular fa-heart fs-1 opacity-25 mb-3"></i>
+                                <p>No items in your wishlist.</p>
+                                <a href="{% url 'products:product_list' %}" class="btn btn-brand mt-2">Explore Shop</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

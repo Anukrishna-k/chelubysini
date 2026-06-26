@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist | Chelu by Sini{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="font-heading mb-4 text-brand">My Wishlist</h1>
+    
+    {% if wishlist_items %}
+    <div class="row g-4">
+        {% for item in wishlist_items %}
+        <div class="col-6 col-sm-6 col-md-4 col-lg-3">
+            <div class="product-card">
+
+                <form action="{% url 'wishlist:wishlist_remove' item.product.id %}" method="post" class="position-absolute" style="top: 10px; right: 10px; z-index: 10;">
+                    {% csrf_token %}
+                    <button type="submit" class="wishlist-btn-overlay text-danger border-0" title="Remove from Wishlist">
+                        <i class="fa-solid fa-xmark fs-5"></i>
+                    </button>
+                </form>
+                
+                <div class="product-image-wrapper">
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                        <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
+                    {% endif %}
+                </div>
+                
+                <div class="product-card-body">
+                    <div>
+                        <div class="product-card-category">{{ item.product.category.name }}</div>
+                        <h4 class="product-card-title"><a href="{% url 'products:product_detail' item.product.id %}">{{ item.product.name }}</a></h4>
+                        <div class="star-rating mb-2">
+                            {% if item.product.average_rating > 0 %}
+                                <i class="fa-solid fa-star"></i> <span class="text-dark small">{{ item.product.average_rating }}</span>
+                            {% else %}
+                                <i class="fa-regular fa-star text-muted"></i> <span class="text-muted small">No reviews</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="product-card-price">₹{{ item.product.price }}</span>
+                        <a href="{% url 'wishlist:wishlist_move_to_cart' item.product.id %}" class="btn btn-brand py-2 px-3 small rounded-0">
+                            <i class="fa-solid fa-cart-plus me-1"></i> Move to Bag
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="bg-white p-5 rounded shadow-sm border border-light">
+            <i class="fa-regular fa-heart fs-1 text-brand opacity-25 mb-3"></i>
+            <h3 class="font-heading">Your Wishlist is Empty</h3>
+            <p class="text-muted">Explore our collection, save your favorite pieces, and purchase them whenever you're ready!</p>
+            <a href="{% url 'products:product_list' %}" class="btn btn-brand mt-2">Explore Shop</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
