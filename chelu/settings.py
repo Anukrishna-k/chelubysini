@@ -12,9 +12,20 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file if it exists
+env_file = BASE_DIR / '.env'
+if env_file.exists():
+    with open(env_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                key, val = line.split('=', 1)
+                os.environ[key.strip()] = val.strip()
 
 
 # Quick-start development settings - unsuitable for production
@@ -88,15 +99,18 @@ WSGI_APPLICATION = 'chelu.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'chelu_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL"),
+        conn_max_age=600,
+        ssl_require=True,
+    )
 }
+
+# Disable SSL locally if DATABASE_URL contains sslmode=disable or targets localhost/127.0.0.1
+db_url = os.environ.get("DATABASE_URL", "")
+if "sslmode=disable" in db_url or "localhost" in db_url or "127.0.0.1" in db_url:
+    if DATABASES.get("default", {}).get("OPTIONS", {}).get("sslmode") == "require":
+        del DATABASES["default"]["OPTIONS"]["sslmode"]
 
 
 # Password validation
