@@ -1,6 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<style>
+    .thumbnail-img-wrapper {
+        transition: var(--transition-smooth);
+        border: 1px solid #dee2e6;
+    }
+    .thumbnail-img-wrapper:hover, .thumbnail-img-wrapper.active-thumbnail {
+        border-color: var(--brand-primary) !important;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
 {% block title %}{{ product.name }} | Chelu by Sini{% endblock %}
 
 {% block content %}
@@ -16,18 +29,36 @@
     </nav>
 
     <div class="row g-5">
-        <!-- Product Image -->
+        <!-- Product Image & Gallery -->
         <div class="col-md-6">
-            <div class="bg-white p-2 border shadow-sm" style="cursor: zoom-in;" data-bs-toggle="modal" data-bs-target="#imageFullscreenModal">
+            <div id="mainProductImageContainer" class="bg-white p-2 border shadow-sm mb-3 lightbox-trigger" style="cursor: zoom-in;" data-img-url="{{ product.image.url }}">
                 {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid w-100 object-fit-cover" style="max-height: 600px;">
+                    <img id="mainProductImage" src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid w-100 object-fit-cover" style="max-height: 550px;">
                 {% else %}
-
                     <div class="bg-light d-flex align-items-center justify-content-center" style="height: 450px;">
                         <i class="fa fa-image fs-1 text-muted"></i>
                     </div>
                 {% endif %}
             </div>
+            
+            {% if product.images.all %}
+                <div class="row g-2">
+                    <!-- Main Image Thumbnail -->
+                    <div class="col-3">
+                        <div class="p-1 bg-white thumbnail-img-wrapper active-thumbnail" style="cursor: pointer;" onclick="changeMainImage('{{ product.image.url }}', this)">
+                            <img src="{{ product.image.url }}" class="img-fluid w-100 object-fit-cover" style="height: 80px;" alt="{{ product.name }} main">
+                        </div>
+                    </div>
+                    <!-- Additional Gallery Thumbnails -->
+                    {% for gallery_img in product.images.all %}
+                        <div class="col-3">
+                            <div class="p-1 bg-white thumbnail-img-wrapper" style="cursor: pointer;" onclick="changeMainImage('{{ gallery_img.image.url }}', this)">
+                                <img src="{{ gallery_img.image.url }}" class="img-fluid w-100 object-fit-cover" style="height: 80px;" alt="{{ product.name }} gallery">
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         <!-- Product Actions -->
@@ -260,20 +291,30 @@
     {% endif %}
 </div>
 
-<!-- Fullscreen Image Lightbox Modal -->
-<div class="modal fade" id="imageFullscreenModal" tabindex="-1" aria-labelledby="imageFullscreenModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl modal-fullscreen-md-down m-0 max-vw-100 max-vh-100" style="max-width: 100%; width: 100%;">
-        <div class="modal-content rounded-0 border-0 bg-dark bg-opacity-95 text-white" style="min-height: 100vh;">
-            <div class="modal-header border-0 p-3 position-absolute top-0 end-0" style="z-index: 1060;">
-                <button type="button" class="btn-close btn-close-white fs-4 p-2 shadow-none" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(100%) brightness(200%);"></button>
-            </div>
-            <div class="modal-body p-0 d-flex align-items-center justify-content-center" style="min-height: 100vh;">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="img-fluid object-fit-contain" alt="{{ product.name }}" style="max-height: 95vh; max-width: 95vw; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeMainImage(imgUrl, element) {
+        const mainImg = document.getElementById('mainProductImage');
+        if (mainImg) {
+            mainImg.src = imgUrl;
+        }
+        
+        // Update lightbox trigger url attribute on container
+        const container = document.getElementById('mainProductImageContainer');
+        if (container) {
+            container.setAttribute('data-img-url', imgUrl);
+        }
+        
+        // Remove active class from all thumbnail wrappers
+        document.querySelectorAll('.thumbnail-img-wrapper').forEach(wrapper => {
+            wrapper.classList.remove('active-thumbnail');
+        });
+        
+        // Add active class to clicked thumbnail wrapper
+        element.classList.add('active-thumbnail');
+    }
+</script>
 {% endblock %}
 

@@ -43,6 +43,7 @@ def checkout(request):
             messages.error(request, "Please fill in all shipping details.")
             return render(request, 'orders/checkout.html', {'cart': cart, 'profile': profile, 'total_price': total})
             
+        order_note = request.POST.get('order_note', '').strip()
         # Create order
         order = Order.objects.create(
             user=request.user,
@@ -58,7 +59,8 @@ def checkout(request):
             discount=discount,
             payment_method=payment_method,
             payment_status=False,
-            status='Processing'
+            status='Pending',
+            note=order_note if order_note else None
         )
         
         # Save order items and decrement stock
@@ -96,7 +98,7 @@ def checkout(request):
                 del request.session['discount_percent']
                 
             messages.success(request, f"Order #{order.id} placed successfully! Thank you for shopping with us.")
-            return redirect('orders:order_detail', pk=order.id)
+            return redirect('orders:order_confirmation', pk=order.id)
         else:
             return redirect('orders:payment_page', pk=order.id)
         
@@ -200,7 +202,7 @@ def payment_verify(request, pk):
                 del request.session['discount_percent']
                 
             messages.success(request, f"Payment for Order #{order.id} completed successfully!")
-            return redirect('orders:order_detail', pk=order.id)
+            return redirect('orders:order_confirmation', pk=order.id)
         else:
             messages.error(request, "Payment verification failed. Please try again.")
             return redirect('orders:payment_page', pk=order.id)
@@ -268,11 +270,16 @@ def admin_dashboard(request):
     if not boutique_settings:
         boutique_settings = BoutiqueSettings.objects.create()
         
+    # Fetch Hero Slides for content management
+    from products.models import HeroSlide
+    hero_slides = HeroSlide.objects.all().order_by('order')
+        
     context = {
         'orders': orders,
         'products': products,
         'categories': categories,
         'happy_customers': happy_customers,
+        'hero_slides': hero_slides,
         'total_sales': total_sales,
         'total_orders': total_orders,
         'pending_orders': pending_orders,
@@ -316,7 +323,7 @@ def admin_product_add(request):
         
         if all([category_id, name, description, price, stock, image]):
             category = get_object_or_404(Category, id=category_id)
-            Product.objects.create(
+            product = Product.objects.create(
                 category=category,
                 name=name,
                 description=description,
@@ -326,10 +333,72 @@ def admin_product_add(request):
                 featured=featured,
                 best_seller=best_seller
             )
+            
+            # Save product gallery images if uploaded
+            from products.models import ProductImage
+            gallery_images = request.FILES.getlist('gallery_images')
+            for img in gallery_images:
+                ProductImage.objects.create(product=product, image=img)
+                
             messages.success(request, f"Product '{name}' added successfully.")
         else:
             messages.error(request, "Failed to add product. Please fill in all fields and upload an image.")
             
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_product_edit(request, pk):
+    product = get_object_or_404(Product, id=pk)
+    if request.method == 'POST':
+        category_id = request.POST.get('category')
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        featured = request.POST.get('featured') == 'on'
+        best_seller = request.POST.get('best_seller') == 'on'
+        
+        # Overwrite main image if provided
+        new_image = request.FILES.get('image')
+        
+        if all([category_id, name, description, price, stock]):
+            category = get_object_or_404(Category, id=category_id)
+            product.category = category
+            product.name = name
+            product.description = description
+            product.price = Decimal(price)
+            product.stock = int(stock)
+            product.featured = featured
+            product.best_seller = best_seller
+            
+            if new_image:
+                product.image = new_image
+            product.save()
+            
+            # Save new gallery images if uploaded
+            from products.models import ProductImage
+            gallery_images = request.FILES.getlist('gallery_images')
+            for img in gallery_images:
+                ProductImage.objects.create(product=product, image=img)
+                
+            # Delete selected existing gallery images
+            delete_images = request.POST.getlist('delete_gallery_images')
+            if delete_images:
+                ProductImage.objects.filter(id__in=[int(img_id) for img_id in delete_images], product=product).delete()
+                
+            messages.success(request, f"Product '{name}' updated successfully.")
+        else:
+            messages.error(request, "Failed to update product. Please fill in all required fields.")
+            
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_product_delete(request, pk):
+    product = get_object_or_404(Product, id=pk)
+    if request.method == 'POST':
+        name = product.name
+        product.delete()
+        messages.success(request, f"Product '{name}' deleted successfully.")
     return redirect('orders:admin_dashboard')
 
 @staff_member_required
@@ -351,6 +420,96 @@ def admin_customer_photo_upload(request):
         else:
             messages.error(request, "Failed to upload photo. Name and Image are required.")
             
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_customer_photo_edit(request, pk):
+    customer = get_object_or_404(HappyCustomer, id=pk)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        location = request.POST.get('location')
+        quote = request.POST.get('quote')
+        new_image = request.FILES.get('image')
+        
+        if name:
+            customer.name = name
+            customer.location = location
+            customer.quote = quote
+            if new_image:
+                customer.image = new_image
+            customer.save()
+            messages.success(request, f"Updated testimonial photo for '{name}'.")
+        else:
+            messages.error(request, "Failed to update testimonial. Name is required.")
+            
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_customer_photo_delete(request, pk):
+    customer = get_object_or_404(HappyCustomer, id=pk)
+    if request.method == 'POST':
+        name = customer.name
+        customer.delete()
+        messages.success(request, f"Deleted testimonial for '{name}'.")
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_heroslide_add(request):
+    if request.method == 'POST':
+        subtitle = request.POST.get('subtitle', '').strip()
+        title = request.POST.get('title', '').strip()
+        button_text = request.POST.get('button_text', '').strip()
+        button_url = request.POST.get('button_url', '').strip()
+        order = request.POST.get('order', '0').strip()
+        image = request.FILES.get('image')
+        
+        if image:
+            from products.models import HeroSlide
+            HeroSlide.objects.create(
+                subtitle=subtitle if subtitle else "Fan favourites",
+                title=title if title else "Customer-loved Chelu classic",
+                button_text=button_text if button_text else "SHOP NOW",
+                button_url=button_url if button_url else "/shop/",
+                order=int(order) if order else 0,
+                image=image
+            )
+            messages.success(request, "Successfully added new hero slider slide.")
+        else:
+            messages.error(request, "Failed to add hero slide. Slide image is required.")
+            
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_heroslide_edit(request, pk):
+    from products.models import HeroSlide
+    slide = get_object_or_404(HeroSlide, id=pk)
+    if request.method == 'POST':
+        subtitle = request.POST.get('subtitle', '').strip()
+        title = request.POST.get('title', '').strip()
+        button_text = request.POST.get('button_text', '').strip()
+        button_url = request.POST.get('button_url', '').strip()
+        order = request.POST.get('order', '0').strip()
+        new_image = request.FILES.get('image')
+        
+        slide.subtitle = subtitle
+        slide.title = title
+        slide.button_text = button_text
+        slide.button_url = button_url
+        slide.order = int(order) if order else 0
+        if new_image:
+            slide.image = new_image
+        slide.save()
+        messages.success(request, "Successfully updated hero slider slide.")
+        
+    return redirect('orders:admin_dashboard')
+
+@staff_member_required
+def admin_heroslide_delete(request, pk):
+    from products.models import HeroSlide
+    slide = get_object_or_404(HeroSlide, id=pk)
+    if request.method == 'POST':
+        slide.delete()
+        messages.success(request, "Successfully deleted hero slider slide.")
     return redirect('orders:admin_dashboard')
 
 @staff_member_required
@@ -416,6 +575,85 @@ def admin_settings_update(request):
         else:
             messages.error(request, "Failed to update settings. Please check all fields.")
     return redirect('orders:admin_dashboard')
+
+
+def generate_whatsapp_message(order):
+    import urllib.parse
+    from django.utils import timezone
+    
+    # 1. Header
+    msg = "🛍️ *NEW ORDER RECEIVED*\n\n"
+    msg += "━━━━━━━━━━━━━━━━━━\n\n"
+    
+    # 2. Order ID
+    msg += f"📦 *Order ID:* {order.id}\n\n"
+    
+    # 3. Customer Details
+    msg += "👤 *Customer Details*\n"
+    msg += f"• Name: {order.name}\n"
+    msg += f"• Phone: {order.phone_number}\n"
+    msg += f"• Email: {order.email}\n\n"
+    
+    # 4. Delivery Address
+    msg += "📍 *Delivery Address*\n"
+    msg += f"{order.address}\n"
+    msg += f"{order.city}, {order.state} - {order.pincode}\n\n"
+    
+    msg += "━━━━━━━━━━━━━━━━━━\n\n"
+    
+    # 5. Ordered Products
+    msg += "🛒 *Ordered Products*\n\n"
+    for item in order.items.all():
+        msg += f"• {item.product.name if item.product else 'Deleted Product'}\n"
+        msg += f"Quantity: {item.quantity}\n"
+        msg += f"Price: ₹{item.price:.2f}\n\n"
+        
+    msg += "━━━━━━━━━━━━━━━━━━\n\n"
+    
+    # 6. Order Summary
+    subtotal = sum(item.price * item.quantity for item in order.items.all())
+    msg += "💰 *Order Summary*\n\n"
+    msg += f"Subtotal: ₹{subtotal:.2f}\n\n"
+    msg += "Shipping: ₹0\n\n"
+    msg += f"Discount: ₹{order.discount:.2f}\n\n"
+    msg += f"Total Amount: ₹{order.total_price:.2f}\n\n"
+    
+    pay_method = order.get_payment_method_display()
+    msg += f"Payment Method:\n{pay_method}\n\n"
+    
+    msg += "━━━━━━━━━━━━━━━━━━\n\n"
+    
+    # 7. Customer Note
+    note_val = order.note if order.note else "N/A"
+    msg += f"📝 Customer Note:\n{note_val}\n\n"
+    
+    msg += "━━━━━━━━━━━━━━━━━━\n\n"
+    
+    # 8. Order Time
+    local_time = timezone.localtime(order.created_at)
+    formatted_time = local_time.strftime('%Y-%m-%d %I:%M %p')
+    msg += f"Order Time:\n{formatted_time}\n\n"
+    
+    msg += "Thank you."
+    
+    # URL encode the entire message
+    encoded_text = urllib.parse.quote(msg)
+    return f"https://wa.me/919497360705?text={encoded_text}"
+
+
+@login_required
+def order_confirmation(request, pk):
+    order = get_object_or_404(Order, pk=pk, user=request.user)
+    whatsapp_url = generate_whatsapp_message(order)
+    subtotal = sum(item.price * item.quantity for item in order.items.all())
+    
+    context = {
+        'order': order,
+        'subtotal': subtotal,
+        'whatsapp_url': whatsapp_url,
+    }
+    return render(request, 'orders/confirmation.html', context)
+
 
 
 

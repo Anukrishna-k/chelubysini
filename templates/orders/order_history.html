@@ -13,7 +13,6 @@
                 <table class="table align-middle">
                     <thead>
                         <tr class="small text-uppercase text-muted border-bottom">
-                            <th>Order #</th>
                             <th>Date</th>
                             <th>Status</th>
                             <th>Total Price</th>
@@ -24,7 +23,6 @@
                     <tbody>
                         {% for order in orders %}
                             <tr class="border-bottom">
-                                <td class="fw-bold">#{{ order.id }}</td>
                                 <td>{{ order.created_at|date:"d M Y" }}</td>
                                 <td>
                                     {% if order.status == 'Processing' %}

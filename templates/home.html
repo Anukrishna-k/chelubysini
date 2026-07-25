@@ -134,9 +134,14 @@
                 <a href="{% url 'wishlist:wishlist_add' product.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
                     <i class="fa-regular fa-heart"></i>
                 </a>
-                <div class="product-image-wrapper">
+                <div class="product-image-wrapper position-relative">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        <a href="{% url 'products:product_detail' product.id %}">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        </a>
+                        <button type="button" class="btn-zoom-overlay lightbox-trigger" data-img-url="{{ product.image.url }}" title="Zoom Image">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
                     {% else %}
                         <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
                     {% endif %}
@@ -189,9 +194,14 @@
                     {% for product in featured_products|slice:":2" %}
                     <div class="col-md-6">
                         <div class="card border-0 rounded-0 shadow-sm overflow-hidden h-100 d-flex flex-row">
-                            <div style="width: 120px; min-width: 120px; height: 160px; position: relative;">
+                            <div class="featured-product-image-container" style="width: 120px; min-width: 120px; height: 160px; position: relative;">
                                 {% if product.image %}
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover">
+                                    <a href="{% url 'products:product_detail' product.id %}">
+                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-100 h-100 object-fit-cover">
+                                    </a>
+                                    <button type="button" class="btn-zoom-overlay lightbox-trigger" data-img-url="{{ product.image.url }}" title="Zoom Image" style="bottom: 8px; right: 8px; width: 28px; height: 28px; font-size: 0.75rem;">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
                                 {% else %}
                                     <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center"><i class="fa fa-image text-muted"></i></div>
                                 {% endif %}
@@ -234,9 +244,14 @@
                 <a href="{% url 'wishlist:wishlist_add' product.id %}" class="wishlist-btn-overlay" title="Save to Wishlist">
                     <i class="fa-regular fa-heart"></i>
                 </a>
-                <div class="product-image-wrapper">
+                <div class="product-image-wrapper position-relative">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        <a href="{% url 'products:product_detail' product.id %}">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        </a>
+                        <button type="button" class="btn-zoom-overlay lightbox-trigger" data-img-url="{{ product.image.url }}" title="Zoom Image">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
                     {% else %}
                         <div class="position-absolute w-100 h-100 bg-secondary opacity-10 d-flex align-items-center justify-content-center"><i class="fa fa-image fs-1 text-muted"></i></div>
                     {% endif %}

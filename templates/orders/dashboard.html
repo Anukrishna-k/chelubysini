@@ -59,7 +59,7 @@
                     <i class="fa-solid fa-tags me-2"></i>Promotions (Coupons)
                 </a>
                 <a href="#happy-customers-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
-                    <i class="fa-regular fa-face-smile-beam me-2"></i>Happy Customers
+                    <i class="fa-solid fa-house-chimney me-2"></i>Homepage Content
                 </a>
                 <a href="#settings-tab" class="list-group-item list-group-item-action py-3 border-0" data-bs-toggle="list">
                     <i class="fa-solid fa-gears me-2"></i>Store Settings
@@ -218,6 +218,7 @@
                                         <th>Stock</th>
                                         <th>Featured</th>
                                         <th>Best Seller</th>
+                                        <th class="text-end">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -252,7 +253,130 @@
                                                     <span class="text-muted">—</span>
                                                 {% endif %}
                                             </td>
+                                            <td class="text-end">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button type="button" class="btn btn-sm btn-brand py-1 px-2 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#editProductModal-{{ product.id }}">
+                                                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#deleteProductModal-{{ product.id }}">
+                                                        <i class="fa-solid fa-trash"></i> Delete
+                                                    </button>
+                                                </div>
+                                            </td>
                                         </tr>
+
+                                        <!-- Modal: Edit Product {{ product.id }} -->
+                                        <div class="modal fade" id="editProductModal-{{ product.id }}" tabindex="-1" aria-labelledby="editProductModalLabel-{{ product.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content rounded-0">
+                                                    <div class="modal-header border-bottom-0">
+                                                        <h5 class="modal-title font-heading text-brand fs-4" id="editProductModalLabel-{{ product.id }}">Edit Product: {{ product.name }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'orders:admin_product_edit' product.id %}" enctype="multipart/form-data">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body text-start">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">Saree / Product Category</label>
+                                                                <select name="category" class="form-select rounded-0" required>
+                                                                    {% for cat in categories %}
+                                                                        <option value="{{ cat.id }}" {% if product.category.id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">Product Name</label>
+                                                                <input type="text" name="name" class="form-control rounded-0" value="{{ product.name }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-semibold">Description</label>
+                                                                <textarea name="description" rows="3" class="form-control rounded-0" required>{{ product.description }}</textarea>
+                                                            </div>
+                                                            <div class="row g-3 mb-3">
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label small fw-semibold">Price (₹)</label>
+                                                                    <input type="number" name="price" step="0.01" min="0" class="form-control rounded-0" value="{{ product.price }}" required>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label small fw-semibold">Stock Quantity</label>
+                                                                    <input type="number" name="stock" min="0" class="form-control rounded-0" value="{{ product.stock }}" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row g-3 mb-3">
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label small fw-semibold">Change Main Image (Optional)</label>
+                                                                    <input type="file" name="image" class="form-control rounded-0" accept="image/*">
+                                                                    {% if product.image %}
+                                                                        <div class="mt-2 text-center border p-1 bg-light" style="max-width: 120px;">
+                                                                            <img src="{{ product.image.url }}" class="img-fluid" alt="Current Main">
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label class="form-label small fw-semibold">Add to Product Gallery (Optional)</label>
+                                                                    <input type="file" name="gallery_images" class="form-control rounded-0" accept="image/*" multiple>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            {% if product.images.all %}
+                                                            <div class="mb-3 border-top pt-3">
+                                                                <label class="form-label small fw-bold text-brand d-block mb-2">Delete Gallery Images</label>
+                                                                <div class="row g-2">
+                                                                    {% for gallery_img in product.images.all %}
+                                                                        <div class="col-4 col-sm-3 text-center">
+                                                                            <div class="border p-1 bg-light">
+                                                                                <img src="{{ gallery_img.image.url }}" class="img-fluid object-fit-cover w-100" style="height: 70px;" alt="Gallery">
+                                                                                <div class="form-check mt-1 d-flex justify-content-center">
+                                                                                    <input class="form-check-input" type="checkbox" name="delete_gallery_images" value="{{ gallery_img.id }}" id="del-img-{{ gallery_img.id }}">
+                                                                                    <label class="form-check-label small ms-1 text-danger cursor-pointer" for="del-img-{{ gallery_img.id }}">Delete</label>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    {% endfor %}
+                                                                </div>
+                                                            </div>
+                                                            {% endif %}
+                                                            
+                                                            <div class="form-check form-switch mb-2">
+                                                                <input class="form-check-input" type="checkbox" name="featured" id="prod-featured-{{ product.id }}" {% if product.featured %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="prod-featured-{{ product.id }}">Mark as Featured (Show in Homepage section)</label>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-2">
+                                                                <input class="form-check-input" type="checkbox" name="best_seller" id="prod-bestseller-{{ product.id }}" {% if product.best_seller %}checked{% endif %}>
+                                                                <label class="form-check-label small" for="prod-bestseller-{{ product.id }}">Mark as Best Seller (Show in Best Sellers section)</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-top-0">
+                                                            <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-brand py-2">Save Changes</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Modal: Delete Confirmation for Product {{ product.id }} -->
+                                        <div class="modal fade" id="deleteProductModal-{{ product.id }}" tabindex="-1" aria-labelledby="deleteProductModalLabel-{{ product.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content rounded-0">
+                                                    <div class="modal-header border-bottom-0">
+                                                        <h5 class="modal-title font-heading text-danger fs-4" id="deleteProductModalLabel-{{ product.id }}">Delete Product?</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="post" action="{% url 'orders:admin_product_delete' product.id %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body text-start">
+                                                            <p>Are you sure you want to delete product <strong>"{{ product.name }}"</strong>?</p>
+                                                            <p class="text-danger small"><i class="fa-solid fa-circle-exclamation me-1"></i> This action cannot be undone and will remove the product along with all its sales history, customer reviews, and gallery images.</p>
+                                                        </div>
+                                                        <div class="modal-footer border-top-0">
+                                                            <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-danger rounded-0 py-2">Delete Product</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -260,8 +384,148 @@
                     </div>
                 </div>
 
-                <!-- Tab 3: Happy Customers -->
+                <!-- Tab 3: Homepage Content Management -->
                 <div class="tab-pane fade" id="happy-customers-tab">
+                    
+                    <!-- Section A: Hero Header Slides -->
+                    <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h3 class="font-heading text-brand mb-0">Hero Header Slides</h3>
+                            <button type="button" class="btn btn-brand py-2 px-3 rounded-0" data-bs-toggle="modal" data-bs-target="#addHeroSlideModal">
+                                <i class="fa-solid fa-plus me-2"></i>Add Hero Slide
+                            </button>
+                        </div>
+                        
+                        {% if hero_slides %}
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr class="small text-uppercase text-muted border-bottom">
+                                            <th>Slide Image</th>
+                                            <th>Subtitle</th>
+                                            <th>Heading Title</th>
+                                            <th>Button</th>
+                                            <th>Order</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for slide in hero_slides %}
+                                            <tr class="border-bottom">
+                                                <td>
+                                                    <div class="border" style="width: 80px; height: 50px; overflow: hidden; position: relative;">
+                                                        {% if slide.image %}
+                                                            <img src="{{ slide.image.url }}" alt="" class="w-100 h-100 object-fit-cover">
+                                                        {% endif %}
+                                                    </div>
+                                                </td>
+                                                <td><span class="small text-muted">{{ slide.subtitle }}</span></td>
+                                                <td><span class="fw-semibold text-dark">{{ slide.title }}</span></td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border py-1 px-2 fs-8 rounded-0">
+                                                        {{ slide.button_text }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ slide.order }}</td>
+                                                <td class="text-end">
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <button type="button" class="btn btn-sm btn-brand py-1 px-2 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#editHeroSlideModal-{{ slide.id }}">
+                                                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#deleteHeroSlideModal-{{ slide.id }}">
+                                                            <i class="fa-solid fa-trash"></i> Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Modal: Edit Hero Slide {{ slide.id }} -->
+                                            <div class="modal fade" id="editHeroSlideModal-{{ slide.id }}" tabindex="-1" aria-labelledby="editHeroSlideModalLabel-{{ slide.id }}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content rounded-0">
+                                                        <div class="modal-header border-bottom-0">
+                                                            <h5 class="modal-title font-heading text-brand fs-4" id="editHeroSlideModalLabel-{{ slide.id }}">Edit Hero Slide</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'orders:admin_heroslide_edit' slide.id %}" enctype="multipart/form-data">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body text-start">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold">Subtitle Tagline</label>
+                                                                    <input type="text" name="subtitle" class="form-control rounded-0" value="{{ slide.subtitle }}">
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold">Heading Title</label>
+                                                                    <input type="text" name="title" class="form-control rounded-0" value="{{ slide.title }}" required>
+                                                                </div>
+                                                                <div class="row g-3 mb-3">
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-semibold">Button Text</label>
+                                                                        <input type="text" name="button_text" class="form-control rounded-0" value="{{ slide.button_text }}">
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-semibold">Button Redirect URL</label>
+                                                                        <input type="text" name="button_url" class="form-control rounded-0" value="{{ slide.button_url }}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold">Display Sequence Order</label>
+                                                                    <input type="number" name="order" class="form-control rounded-0" value="{{ slide.order }}">
+                                                                </div>
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small fw-semibold">Slide Image (Optional replacement)</label>
+                                                                    <input type="file" name="image" class="form-control rounded-0" accept="image/*">
+                                                                    {% if slide.image %}
+                                                                        <div class="mt-2 text-center border p-1 bg-light" style="max-width: 150px;">
+                                                                            <img src="{{ slide.image.url }}" class="img-fluid" alt="Current image">
+                                                                        </div>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer border-top-0">
+                                                                <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-brand py-2">Save Changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Modal: Delete Hero Slide {{ slide.id }} -->
+                                            <div class="modal fade" id="deleteHeroSlideModal-{{ slide.id }}" tabindex="-1" aria-labelledby="deleteHeroSlideModalLabel-{{ slide.id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content rounded-0">
+                                                        <div class="modal-header border-bottom-0">
+                                                            <h5 class="modal-title font-heading text-danger fs-4" id="deleteHeroSlideModalLabel-{{ slide.id }}">Delete Slide?</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <form method="post" action="{% url 'orders:admin_heroslide_delete' slide.id %}">
+                                                            {% csrf_token %}
+                                                            <div class="modal-body text-start">
+                                                                <p>Are you sure you want to delete slide <strong>"{{ slide.title }}"</strong>?</p>
+                                                                <p class="text-danger small"><i class="fa-solid fa-circle-exclamation me-1"></i> This slide will be removed from the homepage carousel header.</p>
+                                                            </div>
+                                                            <div class="modal-footer border-top-0">
+                                                                <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                                <button type="submit" class="btn btn-danger rounded-0 py-2">Delete Slide</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted border border-dashed">
+                                <i class="fa-solid fa-images fs-2 mb-2 opacity-50"></i>
+                                <p>No hero slider slides configured yet. Currently displaying default mock hero slide.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Section B: Happy Customers Testimonials -->
                     <div class="card border-0 rounded-0 shadow-sm p-4 bg-white mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                             <h3 class="font-heading text-brand mb-0">Happy Customers Gallery</h3>
@@ -274,25 +538,100 @@
                             <div class="row g-3">
                                 {% for customer in happy_customers %}
                                     <div class="col-md-6 col-lg-4">
-                                        <div class="card border rounded-0 shadow-sm overflow-hidden h-100">
-                                            <div style="height: 200px; overflow: hidden; position: relative;">
-                                                {% if customer.image %}
-                                                    <img src="{{ customer.image.url }}" alt="{{ customer.name }}" class="w-100 h-100 object-fit-cover">
-                                                {% endif %}
+                                        <div class="card border rounded-0 shadow-sm overflow-hidden h-100 d-flex flex-column justify-content-between">
+                                            <div>
+                                                <div style="height: 200px; overflow: hidden; position: relative;">
+                                                    {% if customer.image %}
+                                                        <img src="{{ customer.image.url }}" alt="{{ customer.name }}" class="w-100 h-100 object-fit-cover">
+                                                    {% endif %}
+                                                </div>
+                                                <div class="p-3">
+                                                    <h6 class="font-heading mb-1">{{ customer.name }}</h6>
+                                                    <span class="small text-gold d-block mb-2" style="font-size: 0.75rem;"><i class="fa-solid fa-location-dot me-1"></i>{{ customer.location }}</span>
+                                                    {% if customer.quote %}
+                                                        <p class="small text-muted mb-0 italic" style="font-style: italic;">"{{ customer.quote }}"</p>
+                                                    {% endif %}
+                                                </div>
                                             </div>
-                                            <div class="p-3">
-                                                <h6 class="font-heading mb-1">{{ customer.name }}</h5>
-                                                <span class="small text-muted d-block mb-2"><i class="fa-solid fa-location-dot me-1"></i>{{ customer.location }}</span>
-                                                {% if customer.quote %}
-                                                    <p class="small text-muted mb-0 italic">"{{ customer.quote }}"</p>
-                                                {% endif %}
+                                            <div class="p-3 bg-light border-top d-flex gap-2">
+                                                <button type="button" class="btn btn-sm btn-brand-outline w-50 py-1 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#editCustomerModal-{{ customer.id }}">
+                                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger w-50 py-1 rounded-0 fs-7" data-bs-toggle="modal" data-bs-target="#deleteCustomerModal-{{ customer.id }}">
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal: Edit Customer Testimonial {{ customer.id }} -->
+                                    <div class="modal fade" id="editCustomerModal-{{ customer.id }}" tabindex="-1" aria-labelledby="editCustomerModalLabel-{{ customer.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content rounded-0">
+                                                <div class="modal-header border-bottom-0">
+                                                    <h5 class="modal-title font-heading text-brand fs-4" id="editCustomerModalLabel-{{ customer.id }}">Edit Testimonial</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'orders:admin_customer_photo_edit' customer.id %}" enctype="multipart/form-data">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body text-start">
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold">Customer Name</label>
+                                                            <input type="text" name="name" class="form-control rounded-0" value="{{ customer.name }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold">Location / City</label>
+                                                            <input type="text" name="location" class="form-control rounded-0" value="{{ customer.location }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold">Quote Testimonial</label>
+                                                            <textarea name="quote" rows="3" class="form-control rounded-0">{{ customer.quote }}</textarea>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-semibold">Customer Photo (Optional replacement)</label>
+                                                            <input type="file" name="image" class="form-control rounded-0" accept="image/*">
+                                                            {% if customer.image %}
+                                                                <div class="mt-2 text-center border p-1 bg-light" style="max-width: 120px;">
+                                                                    <img src="{{ customer.image.url }}" class="img-fluid" alt="Current image">
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer border-top-0">
+                                                        <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-brand py-2">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Modal: Delete Customer Testimonial {{ customer.id }} -->
+                                    <div class="modal fade" id="deleteCustomerModal-{{ customer.id }}" tabindex="-1" aria-labelledby="deleteCustomerModalLabel-{{ customer.id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content rounded-0">
+                                                <div class="modal-header border-bottom-0">
+                                                    <h5 class="modal-title font-heading text-danger fs-4" id="deleteCustomerModalLabel-{{ customer.id }}">Delete Testimonial?</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="post" action="{% url 'orders:admin_customer_photo_delete' customer.id %}">
+                                                    {% csrf_token %}
+                                                    <div class="modal-body text-start">
+                                                        <p>Are you sure you want to delete testimonial photo of <strong>"{{ customer.name }}"</strong>?</p>
+                                                        <p class="text-danger small"><i class="fa-solid fa-circle-exclamation me-1"></i> This will permanently remove the story from the customer gallery on the homepage.</p>
+                                                    </div>
+                                                    <div class="modal-footer border-top-0">
+                                                        <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-danger rounded-0 py-2">Delete Testimonial</button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-5 text-muted">
+                            <div class="text-center py-5 text-muted border border-dashed">
                                 <i class="fa-regular fa-face-smile-beam fs-1 opacity-25 mb-2"></i>
                                 <p>No customer photos uploaded yet. Upload one to display on the homepage!</p>
                             </div>
@@ -499,6 +838,11 @@
                         <label for="prod-image" class="form-label small fw-semibold">Product Image File</label>
                         <input type="file" name="image" id="prod-image" class="form-control rounded-0" accept="image/*" required>
                     </div>
+                    <div class="mb-3">
+                        <label for="prod-gallery" class="form-label small fw-semibold">Product Gallery Images (Optional)</label>
+                        <input type="file" name="gallery_images" id="prod-gallery" class="form-control rounded-0" accept="image/*" multiple>
+                        <span class="small text-muted d-block mt-1">You can select multiple images to showcase in the product detail page.</span>
+                    </div>
                     <div class="form-check form-switch mb-2">
                         <input class="form-check-input" type="checkbox" name="featured" id="prod-featured">
                         <label class="form-check-label small" for="prod-featured">Mark as Featured (Show in Homepage section)</label>
@@ -548,6 +892,53 @@
                 <div class="modal-footer border-top-0">
                     <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-brand py-2">Upload Testimonial</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Hero Slider Slide -->
+<div class="modal fade" id="addHeroSlideModal" tabindex="-1" aria-labelledby="addHeroSlideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-0">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title font-heading text-brand fs-4" id="addHeroSlideModalLabel">Add Hero Header Slide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'orders:admin_heroslide_add' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="slide-subtitle" class="form-label small fw-semibold">Subtitle Tagline</label>
+                        <input type="text" name="subtitle" id="slide-subtitle" class="form-control rounded-0" placeholder="e.g. Fan favourites">
+                    </div>
+                    <div class="mb-3">
+                        <label for="slide-title" class="form-label small fw-semibold">Heading Title</label>
+                        <input type="text" name="title" id="slide-title" class="form-control rounded-0" placeholder="e.g. Customer-loved Chelu classic" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="slide-btn-text" class="form-label small fw-semibold">Button Text</label>
+                            <input type="text" name="button_text" id="slide-btn-text" class="form-control rounded-0" placeholder="e.g. SHOP NOW">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="slide-btn-url" class="form-label small fw-semibold">Button Redirect URL</label>
+                            <input type="text" name="button_url" id="slide-btn-url" class="form-control rounded-0" placeholder="e.g. /shop/">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="slide-order" class="form-label small fw-semibold">Display Sequence Order</label>
+                        <input type="number" name="order" id="slide-order" class="form-control rounded-0" placeholder="e.g. 0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="slide-image" class="form-label small fw-semibold">Slide Image</label>
+                        <input type="file" name="image" id="slide-image" class="form-control rounded-0" accept="image/*" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary rounded-0 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand py-2">Add Slide</button>
                 </div>
             </form>
         </div>

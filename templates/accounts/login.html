@@ -7,7 +7,12 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
-            <div class="form-card shadow-sm">
+            <div class="form-card shadow-sm position-relative">
+                <!-- Subtle Admin Access Button -->
+                <a href="#" class="admin-access-btn" id="adminAccessTrigger" data-bs-toggle="modal" data-bs-target="#adminLoginModal" title="Admin Access">
+                    <i class="fa-solid fa-lock"></i>
+                </a>
+                
                 <div class="text-center mb-4">
                     <h2 class="font-heading text-brand fs-1">Welcome Back</h2>
                     <p class="text-muted">Sign in to your Chelu account</p>
@@ -40,4 +45,100 @@
         </div>
     </div>
 </div>
+
+<!-- Admin Login Modal -->
+<div class="modal fade" id="adminLoginModal" tabindex="-1" aria-labelledby="adminLoginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered admin-modal-dialog">
+        <div class="modal-content admin-modal-content">
+            <div class="modal-header admin-modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="adminLoginModalLabel">👑 Admin Access</h5>
+                <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body admin-modal-body">
+                {% if admin_error %}
+                    <div class="alert alert-danger rounded-0 mb-4 d-flex align-items-center" role="alert">
+                        <i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i>
+                        <div class="text-danger fw-semibold">{{ admin_error }}</div>
+                    </div>
+                {% endif %}
+                
+                <form method="post" action="{% url 'accounts:admin_login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+                    
+                    <div class="mb-3">
+                        <label for="admin_username" class="form-label small fw-semibold">Username or Email Address</label>
+                        <input type="text" name="username" id="admin_username" class="form-control rounded-0 py-2" placeholder="admin username or email" value="{{ admin_username|default:'' }}" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="admin_password" class="form-label small fw-semibold mb-0">Password</label>
+                            <a href="#" class="text-brand small text-decoration-none">Forgot Password?</a>
+                        </div>
+                        <div class="password-field-wrapper">
+                            <input type="password" name="password" id="admin_password" class="form-control rounded-0 py-2" placeholder="••••••••" required>
+                            <button type="button" class="password-toggle-btn" id="adminPasswordToggle" title="Toggle password visibility">
+                                <i class="fa-regular fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check custom-checkbox">
+                            <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+                            <label class="form-check-label small text-muted" for="remember_me">
+                                Remember Me
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-brand w-100 py-2">Authenticate Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Password Visibility Toggle
+        const passwordInput = document.getElementById("admin_password");
+        const passwordToggle = document.getElementById("adminPasswordToggle");
+        
+        if (passwordToggle && passwordInput) {
+            passwordToggle.addEventListener("click", function(e) {
+                e.preventDefault();
+                const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+                passwordInput.setAttribute("type", type);
+                
+                // Toggle icon
+                const icon = this.querySelector("i");
+                if (type === "text") {
+                    icon.classList.remove("fa-eye-slash");
+                    icon.classList.add("fa-eye");
+                } else {
+                    icon.classList.remove("fa-eye");
+                    icon.classList.add("fa-eye-slash");
+                }
+            });
+        }
+
+        // Open Modal automatically if triggered via direct link or error reload
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldShowModal = urlParams.has("admin") || {% if show_admin_modal %}true{% else %}false{% endif %};
+        
+        if (shouldShowModal) {
+            const adminModalElement = document.getElementById("adminLoginModal");
+            if (adminModalElement) {
+                const adminModal = new bootstrap.Modal(adminModalElement);
+                adminModal.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

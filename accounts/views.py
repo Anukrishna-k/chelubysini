@@ -113,3 +113,65 @@ def profile_view(request):
         'wishlist_items': wishlist_items,
     }
     return render(request, 'accounts/profile.html', context)
+
+
+def admin_login_view(request):
+    import time
+    from django.urls import reverse
+    
+    if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('orders:admin_dashboard')
+
+    if request.method == 'POST':
+        username_or_email = request.POST.get('username')
+        password = request.POST.get('password')
+        remember_me = request.POST.get('remember_me') == 'on'
+
+        user = None
+        if '@' in username_or_email:
+            try:
+                user_obj = User.objects.get(email=username_or_email)
+                user = authenticate(request, username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+        else:
+            user = authenticate(request, username=username_or_email, password=password)
+
+        if user is not None:
+            if user.is_staff or user.is_superuser:
+                login(request, user)
+                if remember_me:
+                    request.session.set_expiry(1209600)  # 2 weeks
+                else:
+                    request.session.set_expiry(0)  # session cookie
+                
+                request.session['admin_last_activity'] = time.time()
+                messages.success(request, f"Admin access granted. Welcome, {user.first_name or user.username}!")
+                
+                next_url = request.GET.get('next') or request.POST.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('orders:admin_dashboard')
+            else:
+                messages.error(request, "Access Denied. Administrator privileges required.")
+                return render(request, 'accounts/login.html', {
+                    'show_admin_modal': True,
+                    'admin_error': "Access Denied. Administrator privileges required.",
+                    'admin_username': username_or_email
+                })
+        else:
+            messages.error(request, "Invalid username/email or password.")
+            return render(request, 'accounts/login.html', {
+                'show_admin_modal': True,
+                'admin_error': "Invalid username/email or password.",
+                'admin_username': username_or_email
+            })
+
+    # For GET, redirect to main login page with admin modal flag
+    next_param = request.GET.get('next', '')
+    url = f"{reverse('accounts:login')}?admin=1"
+    if next_param:
+        url += f"&next={next_param}"
+    return redirect(url)
+

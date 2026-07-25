@@ -33,6 +33,14 @@ class Product(models.Model):
             return round(sum(r.rating for r in reviews) / reviews.count(), 1)
         return 0.0
 
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='products/gallery/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Image for {self.product.name}"
+
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE)

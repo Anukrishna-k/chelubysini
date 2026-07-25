@@ -4,6 +4,7 @@ from products.models import Product
 
 class Order(models.Model):
     STATUS_CHOICES = (
+        ('Pending', 'Pending'),
         ('Processing', 'Processing'),
         ('Packed', 'Packed'),
         ('Shipped', 'Shipped'),
@@ -29,7 +30,8 @@ class Order(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD_CHOICES, default='COD')
     payment_status = models.BooleanField(default=False)
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Processing')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+    note = models.TextField(blank=True, null=True)
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
     courier_partner = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
