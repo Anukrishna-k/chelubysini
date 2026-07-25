@@ -1,15 +1,9 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "chelu/wsgi.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "chelu/wsgi.py"
+      "source": "/(.*)",
+      "destination": "chelu/wsgi.py"
     }
   ]
 }
