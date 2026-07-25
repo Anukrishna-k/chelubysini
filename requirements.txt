@@ -2,3 +2,4 @@ Django>=4.2
 dj-database-url
 psycopg2-binary
 gunicorn
+django-jazzmin
