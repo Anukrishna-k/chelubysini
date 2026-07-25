@@ -98,21 +98,27 @@ WSGI_APPLICATION = 'chelu.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    "default": dj_database_url.config(
-        default=os.environ.get("DATABASE_URL"),
-        conn_max_age=600,
-        ssl_require=True,
-    )
-}
 
-# Disable SSL locally if DATABASE_URL contains sslmode=disable or targets localhost/127.0.0.1
-db_url = os.environ.get("DATABASE_URL", "")
-if "sslmode=disable" in db_url or "localhost" in db_url or "127.0.0.1" in db_url:
-    if DATABASES.get("default", {}).get("OPTIONS", {}).get("sslmode") == "require":
-        del DATABASES["default"]["OPTIONS"]["sslmode"]
+# 1. Fetch the DATABASE_URL from environment
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-
+if DATABASE_URL:
+    # On Vercel / Production: parse the database URL directly
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True,
+        )
+    }
+else:
+    # Fallback for local development (sqlite or local postgres)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
